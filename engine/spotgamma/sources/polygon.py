@@ -74,10 +74,10 @@ class PolygonSource(ChainSource):
             raise RuntimeError("PolygonSource requires POLYGON_API_KEY. Use --source cboe for a free option.")
 
     def test_connection(self) -> tuple[bool, str]:
-        import requests
+        from ._http import session
 
         try:
-            r = requests.get(f"{_BASE}/v1/marketstatus/now", params={"apiKey": self.api_key}, timeout=15)
+            r = session().get(f"{_BASE}/v1/marketstatus/now", params={"apiKey": self.api_key}, timeout=15)
             if r.status_code in (401, 403):
                 return False, f"{r.status_code} — API key rejected"
             r.raise_for_status()
@@ -86,15 +86,16 @@ class PolygonSource(ChainSource):
             return False, str(e)
 
     def get_chain(self, symbol: str) -> ChainSnapshot:
-        import requests
+        from ._http import session
 
+        http = session()
         underlying = polygon_underlying(symbol)
         url = f"{_BASE}/v3/snapshot/options/{underlying}"
         params = {"apiKey": self.api_key, "limit": 250}
         results: list[dict] = []
         spot = 0.0
         while url:
-            resp = requests.get(url, params=params, timeout=30)
+            resp = http.get(url, params=params, timeout=30)
             resp.raise_for_status()
             body = resp.json()
             page = body.get("results", [])

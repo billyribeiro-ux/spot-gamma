@@ -12,10 +12,14 @@ from __future__ import annotations
 import contextlib
 import json
 import os
+import tempfile
+import threading
 from pathlib import Path
 
 _DEFAULT = Path(__file__).resolve().parents[1] / "instance" / "credentials.json"
 _ACTIVE_KEY = "_active"
+# Serializes read-modify-write so two concurrent admin PUTs can't lose updates.
+_lock = threading.Lock()
 
 
 def _path() -> Path:
@@ -33,9 +37,25 @@ def _read() -> dict:
 
 
 def _write(data: dict) -> None:
+    """Atomically persist the store as 0600.
+
+    Write to a temp file in the same directory then ``os.replace`` (atomic on
+    POSIX/Windows) so a crash mid-write can never truncate the credentials file
+    or expose a partial read.
+    """
     p = _path()
     p.parent.mkdir(parents=True, exist_ok=True)
-    p.write_text(json.dumps(data, indent=2))
+    fd, tmp = tempfile.mkstemp(dir=p.parent, prefix=".cred-", suffix=".tmp")
+    try:
+        with contextlib.suppress(OSError):
+            os.fchmod(fd, 0o600)
+        with os.fdopen(fd, "w") as f:
+            json.dump(data, f, indent=2)
+        os.replace(tmp, p)
+    except BaseException:
+        with contextlib.suppress(OSError):
+            os.unlink(tmp)
+        raise
     with contextlib.suppress(OSError):  # best-effort on platforms without POSIX perms
         os.chmod(p, 0o600)
 
@@ -47,18 +67,19 @@ def get_credentials(name: str) -> dict:
 
 def set_credentials(name: str, creds: dict) -> None:
     """Merge credentials for a source. An empty-string value clears that field."""
-    data = _read()
-    current = dict(data.get(name, {}))
-    for k, v in creds.items():
-        if v is None or v == "":
-            current.pop(k, None)
+    with _lock:
+        data = _read()
+        current = dict(data.get(name, {}))
+        for k, v in creds.items():
+            if v is None or v == "":
+                current.pop(k, None)
+            else:
+                current[k] = v
+        if current:
+            data[name] = current
         else:
-            current[k] = v
-    if current:
-        data[name] = current
-    else:
-        data.pop(name, None)
-    _write(data)
+            data.pop(name, None)
+        _write(data)
 
 
 def configured_names() -> set[str]:
@@ -70,6 +91,7 @@ def active_source() -> str | None:
 
 
 def set_active(name: str) -> None:
-    data = _read()
-    data[_ACTIVE_KEY] = name
-    _write(data)
+    with _lock:
+        data = _read()
+        data[_ACTIVE_KEY] = name
+        _write(data)

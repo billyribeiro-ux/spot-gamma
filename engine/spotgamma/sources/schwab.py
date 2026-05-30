@@ -93,10 +93,10 @@ class SchwabSource(ChainSource):
             )
 
     def test_connection(self) -> tuple[bool, str]:
-        import requests
+        from ._http import session
 
         try:
-            r = requests.get(
+            r = session().get(
                 f"{_BASE}/quotes",
                 params={"symbols": "SPY"},
                 headers={"Authorization": f"Bearer {self.token}", "Accept": "application/json"},
@@ -110,9 +110,9 @@ class SchwabSource(ChainSource):
             return False, str(e)
 
     def get_chain(self, symbol: str) -> ChainSnapshot:
-        import requests
+        from ._http import session
 
-        resp = requests.get(
+        resp = session().get(
             f"{_BASE}/chains",
             params={"symbol": schwab_symbol(symbol), "includeUnderlyingQuote": "true"},
             headers={"Authorization": f"Bearer {self.token}", "Accept": "application/json"},

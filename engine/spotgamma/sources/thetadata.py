@@ -130,9 +130,9 @@ class ThetaDataSource(ChainSource):
         self.base_url = base_url or os.environ.get("THETADATA_URL", _DEFAULT_BASE)
 
     def _bulk(self, endpoint: str, root: str) -> dict:
-        import requests
+        from ._http import session
 
-        resp = requests.get(
+        resp = session().get(
             f"{self.base_url}/v2/bulk_snapshot/option/{endpoint}",
             # exp=0 is required and returns every expiration for the root.
             params={"root": root, "exp": "0", "use_csv": "false"},
@@ -142,11 +142,11 @@ class ThetaDataSource(ChainSource):
         return resp.json()
 
     def test_connection(self) -> tuple[bool, str]:
-        import requests
+        from ._http import session
 
         try:
             # Any HTTP response means the local Terminal gateway is up.
-            r = requests.get(f"{self.base_url}/v2/system/mdds/status", timeout=8)
+            r = session().get(f"{self.base_url}/v2/system/mdds/status", timeout=8)
             return True, f"Theta Terminal reachable (HTTP {r.status_code})"
         except Exception as e:
             return False, f"Theta Terminal not reachable at {self.base_url}: {e}"

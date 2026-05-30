@@ -34,9 +34,9 @@ class TradierSource(ChainSource):
 
     # --- HTTP helpers -----------------------------------------------------
     def _get(self, path: str, params: dict):
-        import requests  # local import: only needed when this adapter is used
+        from ._http import session  # local import: only needed when this adapter is used
 
-        resp = requests.get(
+        resp = session().get(
             f"{self.base_url}{path}",
             params=params,
             headers={"Authorization": f"Bearer {self.token}", "Accept": "application/json"},

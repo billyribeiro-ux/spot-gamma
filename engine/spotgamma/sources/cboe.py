@@ -72,18 +72,18 @@ class CboeSource(ChainSource):
     name = "cboe"
 
     def get_chain(self, symbol: str) -> ChainSnapshot:
-        import requests  # local import: only needed when this adapter is used
+        from ._http import session  # local import: only needed when this adapter is used
 
         url = f"{_BASE}/{cdn_key(symbol)}.json"
-        resp = requests.get(url, timeout=30)
+        resp = session().get(url, timeout=30)
         resp.raise_for_status()
         return parse_cboe_payload(resp.json(), symbol)
 
     def test_connection(self) -> tuple[bool, str]:
-        import requests
+        from ._http import session
 
         # stream + immediate close fetches headers only (the JSON is multi-MB).
-        resp = requests.get(f"{_BASE}/{cdn_key('SPY')}.json", stream=True, timeout=15)
+        resp = session().get(f"{_BASE}/{cdn_key('SPY')}.json", stream=True, timeout=15)
         ok = resp.ok
         status = resp.status_code
         resp.close()

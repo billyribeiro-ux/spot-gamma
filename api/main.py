@@ -21,9 +21,12 @@ Run::
 
 from __future__ import annotations
 
+import logging
 import os
 import secrets
+import threading
 import time
+from typing import Generic, TypeVar
 
 from fastapi import APIRouter, Depends, FastAPI, Header, HTTPException, Query, status
 from fastapi.middleware.cors import CORSMiddleware
@@ -35,10 +38,47 @@ from spotgamma.sources.specs import SOURCE_SPECS, build_source
 
 from . import store
 
+log = logging.getLogger("spotgamma.api")
+
 DEFAULT_SOURCE = os.environ.get("SPOTGAMMA_SOURCE", "sample")
 CACHE_TTL = float(os.environ.get("SPOTGAMMA_CACHE_TTL", "30"))
 SYMBOLS = ["SPX", "NDX", "SPY", "QQQ"]
 ADMIN_TOKEN = os.environ.get("SPOTGAMMA_ADMIN_TOKEN")
+
+_V = TypeVar("_V")
+
+
+class TTLCache(Generic[_V]):
+    """Tiny thread-safe, size-bounded TTL cache.
+
+    The API runs sync handlers in a threadpool, so the read-modify-write of a
+    plain dict would race; this serializes access and evicts the oldest entry
+    past ``maxsize`` so distinct symbol/source/timeframe keys can't grow forever.
+    """
+
+    def __init__(self, ttl: float, maxsize: int = 64) -> None:
+        self._ttl = ttl
+        self._maxsize = maxsize
+        self._lock = threading.Lock()
+        self._data: dict[tuple, tuple[float, _V]] = {}
+
+    def get(self, key: tuple) -> _V | None:
+        with self._lock:
+            hit = self._data.get(key)
+            if hit and (time.time() - hit[0]) < self._ttl:
+                return hit[1]
+            self._data.pop(key, None)
+            return None
+
+    def put(self, key: tuple, value: _V) -> None:
+        with self._lock:
+            if len(self._data) >= self._maxsize and key not in self._data:
+                self._data.pop(next(iter(self._data)), None)  # evict oldest (insertion order)
+            self._data[key] = (time.time(), value)
+
+    def clear(self) -> None:
+        with self._lock:
+            self._data.clear()
 
 
 def _allowed_origins() -> list[str]:
@@ -58,11 +98,11 @@ app.add_middleware(
     allow_headers=["Content-Type", "X-Admin-Token"],
 )
 
-_cache: dict[tuple[str, str], tuple[float, GammaLevels]] = {}
+_cache: TTLCache[GammaLevels] = TTLCache(CACHE_TTL)
 # Price history is fetched far more often (per timeframe switch) and changes
 # slowly; give it its own short cache so timeframe toggling stays snappy.
-_history_cache: dict[tuple[str, str], tuple[float, dict]] = {}
 HISTORY_TTL = float(os.environ.get("SPOTGAMMA_HISTORY_TTL", "20"))
+_history_cache: TTLCache[dict] = TTLCache(HISTORY_TTL)
 
 
 def _resolved_source(requested: str | None) -> str:
@@ -70,20 +110,31 @@ def _resolved_source(requested: str | None) -> str:
     return requested or store.active_source() or DEFAULT_SOURCE
 
 
+def _upstream_status(exc: Exception) -> int | None:
+    """The HTTP status of an upstream vendor error, if the exception carries one."""
+    resp = getattr(exc, "response", None)
+    return getattr(resp, "status_code", None)
+
+
 def _get_levels(symbol: str, source: str) -> GammaLevels:
     key = (symbol.upper(), source)
-    now = time.time()
-    hit = _cache.get(key)
-    if hit and now - hit[0] < CACHE_TTL:
-        return hit[1]
+    cached = _cache.get(key)
+    if cached is not None:
+        return cached
     try:
         chain = build_source(source, store.get_credentials(source)).get_chain(symbol)
         levels = compute_levels(chain)
     except FileNotFoundError as e:
         raise HTTPException(status_code=404, detail=str(e)) from e
-    except Exception as e:  # source/network/validation/auth errors -> 502
-        raise HTTPException(status_code=502, detail=f"{source} source error: {e}") from e
-    _cache[key] = (now, levels)
+    except Exception as e:
+        # Surface an unknown symbol as 404; everything else (network/auth/parse)
+        # as 502 with the upstream status in the detail so clients can react.
+        upstream = _upstream_status(e)
+        code = 404 if upstream == 404 else 502
+        detail = f"{source} source error: {e}" + (f" (upstream {upstream})" if upstream else "")
+        log.warning("levels(%s, %s) failed: %s", symbol, source, e)
+        raise HTTPException(status_code=code, detail=detail) from e
+    _cache.put(key, levels)
     return levels
 
 
@@ -107,19 +158,26 @@ def levels(symbol: str, source: str | None = Query(default=None)) -> GammaLevels
 def history(symbol: str, tf: str = Query(default="5m")) -> dict:
     """OHLC bars for the trading chart (free Yahoo source, multi-timeframe)."""
     key = (symbol.upper(), tf)
-    now = time.time()
-    hit = _history_cache.get(key)
-    if hit and now - hit[0] < HISTORY_TTL:
-        return hit[1]
+    cached = _history_cache.get(key)
+    if cached is not None:
+        return cached
     try:
         data = fetch_history(symbol, tf)
     except Exception as e:  # network/parse error -> 502
+        log.warning("history(%s, %s) failed: %s", symbol, tf, e)
         raise HTTPException(status_code=502, detail=f"history error: {e}") from e
-    _history_cache[key] = (now, data)
+    _history_cache.put(key, data)
     return data
 
 
 # --- Connections hub ------------------------------------------------------
+if not ADMIN_TOKEN:
+    log.warning(
+        "SPOTGAMMA_ADMIN_TOKEN is not set: /admin credential routes are UNAUTHENTICATED. "
+        "Safe only when bound to localhost for a single user; set a token before exposing the API."
+    )
+
+
 def require_admin(x_admin_token: str | None = Header(default=None)) -> None:
     """Gate /admin routes when SPOTGAMMA_ADMIN_TOKEN is configured."""
     if ADMIN_TOKEN and not (x_admin_token and secrets.compare_digest(x_admin_token, ADMIN_TOKEN)):

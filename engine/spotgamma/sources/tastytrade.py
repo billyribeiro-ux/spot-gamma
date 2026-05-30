@@ -112,8 +112,9 @@ class TastytradeSource(ChainSource):
             )
 
     # --- REST -------------------------------------------------------------
-    def _session_token(self, requests) -> str:
-        r = requests.post(
+    # `http` is the shared retrying session; `session` is the tastytrade auth token.
+    def _session_token(self, http) -> str:
+        r = http.post(
             f"{self.base_url}/sessions",
             json={"login": self.username, "password": self.password},
             timeout=20,
@@ -121,8 +122,8 @@ class TastytradeSource(ChainSource):
         r.raise_for_status()
         return r.json()["data"]["session-token"]
 
-    def _quote_token(self, requests, session: str) -> tuple[str, str]:
-        r = requests.get(
+    def _quote_token(self, http, session: str) -> tuple[str, str]:
+        r = http.get(
             f"{self.base_url}/api-quote-tokens",
             headers={"Authorization": session},
             timeout=20,
@@ -131,8 +132,8 @@ class TastytradeSource(ChainSource):
         d = r.json()["data"]
         return d["token"], d["dxlink-url"]
 
-    def _nested_chain(self, requests, session: str, symbol: str) -> list[ChainMeta]:
-        r = requests.get(
+    def _nested_chain(self, http, session: str, symbol: str) -> list[ChainMeta]:
+        r = http.get(
             f"{self.base_url}/option-chains/{symbol.upper()}/nested",
             headers={"Authorization": session},
             timeout=30,
@@ -140,12 +141,12 @@ class TastytradeSource(ChainSource):
         r.raise_for_status()
         return parse_nested_chain(r.json())
 
-    def _market_spot(self, requests, session: str, symbol: str) -> float:
+    def _market_spot(self, http, session: str, symbol: str) -> float:
         """Underlying level via REST. Indices don't emit DXLink Trade events, so
         the streaming path can't price them — /market-data/by-type can."""
         s = symbol.upper()
         bucket = "indices" if s in _INDEX_SYMBOLS else "equities"
-        r = requests.get(
+        r = http.get(
             f"{self.base_url}/market-data/by-type",
             params={bucket: s},
             headers={"Authorization": session},
@@ -159,12 +160,13 @@ class TastytradeSource(ChainSource):
         return float(q.get("last") or q.get("mark") or q.get("close") or 0.0)
 
     def test_connection(self) -> tuple[bool, str]:
-        import requests
+        from ._http import session as http_factory
 
         try:
-            session = self._session_token(requests)
+            http = http_factory()
+            session = self._session_token(http)
             # validate we can also mint a quote token (needed for streaming greeks)
-            self._quote_token(requests, session)
+            self._quote_token(http, session)
             return True, "Logged in; streaming quote token issued"
         except Exception as e:
             return False, str(e)
@@ -242,12 +244,13 @@ class TastytradeSource(ChainSource):
 
     # --- ChainSource ------------------------------------------------------
     def get_chain(self, symbol: str, timeout: float = 20.0) -> ChainSnapshot:
-        import requests
+        from ._http import session as http_factory
 
-        session = self._session_token(requests)
-        token, dxlink_url = self._quote_token(requests, session)
-        chain = self._nested_chain(requests, session, symbol)
-        spot = self._market_spot(requests, session, symbol)
+        http = http_factory()
+        session = self._session_token(http)
+        token, dxlink_url = self._quote_token(http, session)
+        chain = self._nested_chain(http, session, symbol)
+        spot = self._market_spot(http, session, symbol)
         if not spot:
             raise RuntimeError(f"tastytrade returned no underlying price for {symbol}")
         greeks, oi = self._collect(dxlink_url, token, chain, timeout)
