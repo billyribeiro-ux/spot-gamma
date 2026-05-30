@@ -5,6 +5,10 @@
 	import type { GammaLevels } from '$lib/types';
 
 	let { levels }: { levels: GammaLevels } = $props();
+
+	// Respect the user's reduced-motion preference: no idle auto-rotation.
+	const autoRotate =
+		!browser || !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 </script>
 
 <section class="panel">
@@ -16,7 +20,7 @@
 		<!-- WebGL is client-only; the static prerender ships just the shell. -->
 		{#if browser}
 			<Canvas>
-				<GammaScene {levels} />
+				<GammaScene {levels} {autoRotate} />
 			</Canvas>
 		{/if}
 	</div>

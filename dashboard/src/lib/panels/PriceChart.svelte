@@ -17,6 +17,14 @@
 	import { fetchHistory, formatGex } from '$lib/api';
 	import { TIMEFRAMES, type GammaLevels, type Symbol, type Timeframe } from '$lib/types';
 	import GexProfile from './GexProfile.svelte';
+	import {
+		LEVELS,
+		allVisible,
+		levelRange as computeLevelRange,
+		priceDomain as computePriceDomain,
+		visibleLevelLines,
+		type Visibility
+	} from '$lib/levels';
 
 	let { symbol, levels }: { symbol: Symbol; levels: GammaLevels } = $props();
 
@@ -45,52 +53,18 @@
 	let candleBounds: { lo: number; hi: number } | null = null;
 	let lastBars: CandlestickData<Time>[] = [];
 
-	// SpotGamma key levels in priority order — when two coincide (e.g. Hedge Wall
-	// on the Call Wall), the earlier one wins and the duplicate line is dropped.
-	type LevelKey =
-		| 'spot'
-		| 'call_wall'
-		| 'put_wall'
-		| 'gamma_flip'
-		| 'vol_trigger'
-		| 'abs_gamma'
-		| 'hedge_wall';
-	const LEVELS: { key: LevelKey; label: string; color: string; pick: (l: GammaLevels) => number | null }[] = [
-		{ key: 'spot', label: 'Spot', color: '#e5e7eb', pick: (l) => l.spot },
-		{ key: 'call_wall', label: 'Call Wall', color: '#22c55e', pick: (l) => l.call_wall },
-		{ key: 'put_wall', label: 'Put Wall', color: '#ef4444', pick: (l) => l.put_wall },
-		{ key: 'gamma_flip', label: 'Gamma Flip', color: '#f59e0b', pick: (l) => l.zero_gamma },
-		{ key: 'vol_trigger', label: 'Vol Trigger', color: '#a855f7', pick: (l) => l.volatility_trigger },
-		{ key: 'abs_gamma', label: 'Abs Gamma', color: '#06b6d4', pick: (l) => l.absolute_gamma },
-		{ key: 'hedge_wall', label: 'Hedge Wall', color: '#fb923c', pick: (l) => l.hedge_wall }
-	];
-	let visible = $state<Record<LevelKey, boolean>>({
-		spot: true,
-		call_wall: true,
-		put_wall: true,
-		gamma_flip: true,
-		vol_trigger: true,
-		abs_gamma: true,
-		hedge_wall: true
-	});
+	// Level config + range/domain/dedupe math live in $lib/levels (pure + tested).
+	let visible = $state<Visibility>(allVisible());
 
 	function recomputeLevelRange() {
 		// Only *shown* levels expand the chart, so hiding a far wall lets the
 		// price axis zoom back to the candles.
-		const ps = LEVELS.filter((d) => visible[d.key])
-			.map((d) => d.pick(levels))
-			.filter((v): v is number => v != null);
-		levelRange = ps.length ? { min: Math.min(...ps), max: Math.max(...ps) } : null;
+		levelRange = computeLevelRange(levels, visible);
 	}
 
 	function recomputeDomain() {
-		const los = [candleBounds?.lo, levelRange?.min].filter((v): v is number => v != null);
-		const his = [candleBounds?.hi, levelRange?.max].filter((v): v is number => v != null);
-		if (!los.length || !his.length) return;
-		const lo = Math.min(...los);
-		const hi = Math.max(...his);
-		const pad = (hi - lo) * 0.02 || 1;
-		priceDomain = [lo - pad, hi + pad];
+		const d = computePriceDomain(candleBounds, levelRange);
+		if (d) priceDomain = d;
 	}
 
 	async function load() {
@@ -129,22 +103,15 @@
 		if (!series) return;
 		for (const pl of priceLines) series.removePriceLine(pl);
 		priceLines = [];
-		const seen = new Set<number>();
-		for (const d of LEVELS) {
-			if (!visible[d.key]) continue;
-			const price = d.pick(levels);
-			if (price == null) continue;
-			const rounded = Math.round(price * 100) / 100;
-			if (seen.has(rounded)) continue; // coincident with a higher-priority level
-			seen.add(rounded);
+		for (const line of visibleLevelLines(levels, visible)) {
 			priceLines.push(
 				series.createPriceLine({
-					price,
-					color: d.color,
-					lineWidth: d.key === 'spot' ? 2 : 1,
-					lineStyle: d.key === 'spot' ? LineStyle.Solid : LineStyle.Dashed,
+					price: line.price,
+					color: line.color,
+					lineWidth: line.key === 'spot' ? 2 : 1,
+					lineStyle: line.key === 'spot' ? LineStyle.Solid : LineStyle.Dashed,
 					axisLabelVisible: true,
-					title: d.label
+					title: line.label
 				})
 			);
 		}

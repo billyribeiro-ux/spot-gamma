@@ -79,8 +79,10 @@ def _snap(contracts, spot=100.0):
     from spotgamma.models import ChainSnapshot
 
     return ChainSnapshot(
-        symbol="TEST", spot=spot,
-        timestamp=datetime(2026, 1, 5, 18, 0, tzinfo=UTC), contracts=contracts,
+        symbol="TEST",
+        spot=spot,
+        timestamp=datetime(2026, 1, 5, 18, 0, tzinfo=UTC),
+        contracts=contracts,
     )
 
 
@@ -100,10 +102,8 @@ def test_negative_gamma_regime():
 
     exp = date(2026, 2, 20)
     contracts = [
-        OptionContract(option_type=OptionType.PUT, strike=95, expiration=exp,
-                       open_interest=8000, gamma=0.05),
-        OptionContract(option_type=OptionType.CALL, strike=105, expiration=exp,
-                       open_interest=200, gamma=0.01),
+        OptionContract(option_type=OptionType.PUT, strike=95, expiration=exp, open_interest=8000, gamma=0.05),
+        OptionContract(option_type=OptionType.CALL, strike=105, expiration=exp, open_interest=200, gamma=0.01),
     ]
     levels = compute_levels(_snap(contracts))
     assert levels.net_gex < 0 and levels.regime == "negative"

@@ -70,10 +70,7 @@ def aggregate_by_expiry(snap: ChainSnapshot, spot: float | None = None) -> list[
     net: dict = defaultdict(float)
     for c in snap.contracts:
         net[c.expiration] += contract_gex(c, snap, spot)
-    out = [
-        ExpiryGamma(expiration=exp, net_gex=val, dte_days=snap.days_to_expiry(exp))
-        for exp, val in net.items()
-    ]
+    out = [ExpiryGamma(expiration=exp, net_gex=val, dte_days=snap.days_to_expiry(exp)) for exp, val in net.items()]
     out.sort(key=lambda e: e.expiration)
     return out
 

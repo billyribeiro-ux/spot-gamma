@@ -10,6 +10,7 @@ Each chain has:
 
 These are synthetic but structurally faithful; they are NOT market data.
 """
+
 from __future__ import annotations
 
 import json

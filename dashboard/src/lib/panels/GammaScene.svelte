@@ -3,7 +3,7 @@
 	import { OrbitControls } from '@threlte/extras';
 	import type { GammaLevels } from '$lib/types';
 
-	let { levels }: { levels: GammaLevels } = $props();
+	let { levels, autoRotate = true }: { levels: GammaLevels; autoRotate?: boolean } = $props();
 
 	const MAX_BARS = 48;
 	const SPAN = 24; // world units across the strike axis
@@ -40,7 +40,7 @@
 </script>
 
 <T.PerspectiveCamera makeDefault position={[0, 9, 21]} fov={48}>
-	<OrbitControls enableDamping autoRotate autoRotateSpeed={0.5} enablePan={false} minDistance={10} maxDistance={46} maxPolarAngle={1.45} />
+	<OrbitControls enableDamping {autoRotate} autoRotateSpeed={0.5} enablePan={false} minDistance={10} maxDistance={46} maxPolarAngle={1.45} />
 </T.PerspectiveCamera>
 
 <T.AmbientLight intensity={0.55} />
