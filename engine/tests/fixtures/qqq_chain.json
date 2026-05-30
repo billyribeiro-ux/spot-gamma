@@ -1,0 +1,2654 @@
+{
+  "symbol": "QQQ",
+  "spot": 498.0,
+  "timestamp": "2026-05-29T15:00:00",
+  "risk_free_rate": 0.04,
+  "contracts": [
+    {
+      "option_type": "call",
+      "strike": 438.0,
+      "expiration": "2026-05-29",
+      "open_interest": 16,
+      "volume": 4,
+      "gamma": 0.0,
+      "implied_volatility": 0.1731
+    },
+    {
+      "option_type": "put",
+      "strike": 438.0,
+      "expiration": "2026-05-29",
+      "open_interest": 16,
+      "volume": 4,
+      "gamma": 0.0,
+      "implied_volatility": 0.1731
+    },
+    {
+      "option_type": "call",
+      "strike": 440.5,
+      "expiration": "2026-05-29",
+      "open_interest": 23,
+      "volume": 6,
+      "gamma": 0.0,
+      "implied_volatility": 0.1729
+    },
+    {
+      "option_type": "put",
+      "strike": 440.5,
+      "expiration": "2026-05-29",
+      "open_interest": 23,
+      "volume": 6,
+      "gamma": 0.0,
+      "implied_volatility": 0.1729
+    },
+    {
+      "option_type": "call",
+      "strike": 443.0,
+      "expiration": "2026-05-29",
+      "open_interest": 33,
+      "volume": 9,
+      "gamma": 0.0,
+      "implied_volatility": 0.1728
+    },
+    {
+      "option_type": "put",
+      "strike": 443.0,
+      "expiration": "2026-05-29",
+      "open_interest": 33,
+      "volume": 9,
+      "gamma": 0.0,
+      "implied_volatility": 0.1728
+    },
+    {
+      "option_type": "call",
+      "strike": 445.5,
+      "expiration": "2026-05-29",
+      "open_interest": 46,
+      "volume": 13,
+      "gamma": 0.0,
+      "implied_volatility": 0.1727
+    },
+    {
+      "option_type": "put",
+      "strike": 445.5,
+      "expiration": "2026-05-29",
+      "open_interest": 46,
+      "volume": 13,
+      "gamma": 0.0,
+      "implied_volatility": 0.1727
+    },
+    {
+      "option_type": "call",
+      "strike": 448.0,
+      "expiration": "2026-05-29",
+      "open_interest": 64,
+      "volume": 19,
+      "gamma": 0.0,
+      "implied_volatility": 0.1726
+    },
+    {
+      "option_type": "put",
+      "strike": 448.0,
+      "expiration": "2026-05-29",
+      "open_interest": 64,
+      "volume": 19,
+      "gamma": 0.0,
+      "implied_volatility": 0.1726
+    },
+    {
+      "option_type": "call",
+      "strike": 450.5,
+      "expiration": "2026-05-29",
+      "open_interest": 87,
+      "volume": 26,
+      "gamma": 0.0,
+      "implied_volatility": 0.1724
+    },
+    {
+      "option_type": "put",
+      "strike": 450.5,
+      "expiration": "2026-05-29",
+      "open_interest": 87,
+      "volume": 26,
+      "gamma": 0.0,
+      "implied_volatility": 0.1724
+    },
+    {
+      "option_type": "call",
+      "strike": 453.0,
+      "expiration": "2026-05-29",
+      "open_interest": 116,
+      "volume": 34,
+      "gamma": 0.0,
+      "implied_volatility": 0.1723
+    },
+    {
+      "option_type": "put",
+      "strike": 453.0,
+      "expiration": "2026-05-29",
+      "open_interest": 116,
+      "volume": 34,
+      "gamma": 0.0,
+      "implied_volatility": 0.1723
+    },
+    {
+      "option_type": "call",
+      "strike": 455.5,
+      "expiration": "2026-05-29",
+      "open_interest": 154,
+      "volume": 46,
+      "gamma": 0.0,
+      "implied_volatility": 0.1722
+    },
+    {
+      "option_type": "put",
+      "strike": 455.5,
+      "expiration": "2026-05-29",
+      "open_interest": 154,
+      "volume": 46,
+      "gamma": 0.0,
+      "implied_volatility": 0.1722
+    },
+    {
+      "option_type": "call",
+      "strike": 458.0,
+      "expiration": "2026-05-29",
+      "open_interest": 199,
+      "volume": 59,
+      "gamma": 0.0,
+      "implied_volatility": 0.172
+    },
+    {
+      "option_type": "put",
+      "strike": 458.0,
+      "expiration": "2026-05-29",
+      "open_interest": 199,
+      "volume": 59,
+      "gamma": 0.0,
+      "implied_volatility": 0.172
+    },
+    {
+      "option_type": "call",
+      "strike": 460.5,
+      "expiration": "2026-05-29",
+      "open_interest": 254,
+      "volume": 76,
+      "gamma": 0.0,
+      "implied_volatility": 0.1719
+    },
+    {
+      "option_type": "put",
+      "strike": 460.5,
+      "expiration": "2026-05-29",
+      "open_interest": 254,
+      "volume": 76,
+      "gamma": 0.0,
+      "implied_volatility": 0.1719
+    },
+    {
+      "option_type": "call",
+      "strike": 463.0,
+      "expiration": "2026-05-29",
+      "open_interest": 320,
+      "volume": 96,
+      "gamma": 0.0,
+      "implied_volatility": 0.1718
+    },
+    {
+      "option_type": "put",
+      "strike": 463.0,
+      "expiration": "2026-05-29",
+      "open_interest": 320,
+      "volume": 96,
+      "gamma": 0.0,
+      "implied_volatility": 0.1718
+    },
+    {
+      "option_type": "call",
+      "strike": 465.5,
+      "expiration": "2026-05-29",
+      "open_interest": 396,
+      "volume": 118,
+      "gamma": 0.0,
+      "implied_volatility": 0.1717
+    },
+    {
+      "option_type": "put",
+      "strike": 465.5,
+      "expiration": "2026-05-29",
+      "open_interest": 396,
+      "volume": 118,
+      "gamma": 0.0,
+      "implied_volatility": 0.1717
+    },
+    {
+      "option_type": "call",
+      "strike": 468.0,
+      "expiration": "2026-05-29",
+      "open_interest": 482,
+      "volume": 144,
+      "gamma": 0.0,
+      "implied_volatility": 0.1715
+    },
+    {
+      "option_type": "put",
+      "strike": 468.0,
+      "expiration": "2026-05-29",
+      "open_interest": 482,
+      "volume": 144,
+      "gamma": 0.0,
+      "implied_volatility": 0.1715
+    },
+    {
+      "option_type": "call",
+      "strike": 470.5,
+      "expiration": "2026-05-29",
+      "open_interest": 578,
+      "volume": 173,
+      "gamma": 0.0,
+      "implied_volatility": 0.1714
+    },
+    {
+      "option_type": "put",
+      "strike": 470.5,
+      "expiration": "2026-05-29",
+      "open_interest": 578,
+      "volume": 173,
+      "gamma": 0.0,
+      "implied_volatility": 0.1714
+    },
+    {
+      "option_type": "call",
+      "strike": 473.0,
+      "expiration": "2026-05-29",
+      "open_interest": 682,
+      "volume": 204,
+      "gamma": 0.0,
+      "implied_volatility": 0.1713
+    },
+    {
+      "option_type": "put",
+      "strike": 473.0,
+      "expiration": "2026-05-29",
+      "open_interest": 683,
+      "volume": 204,
+      "gamma": 0.0,
+      "implied_volatility": 0.1713
+    },
+    {
+      "option_type": "call",
+      "strike": 475.5,
+      "expiration": "2026-05-29",
+      "open_interest": 792,
+      "volume": 237,
+      "gamma": 0.0,
+      "implied_volatility": 0.1712
+    },
+    {
+      "option_type": "put",
+      "strike": 475.5,
+      "expiration": "2026-05-29",
+      "open_interest": 811,
+      "volume": 243,
+      "gamma": 0.0,
+      "implied_volatility": 0.1712
+    },
+    {
+      "option_type": "call",
+      "strike": 478.0,
+      "expiration": "2026-05-29",
+      "open_interest": 906,
+      "volume": 271,
+      "gamma": 0.0,
+      "implied_volatility": 0.171
+    },
+    {
+      "option_type": "put",
+      "strike": 478.0,
+      "expiration": "2026-05-29",
+      "open_interest": 1155,
+      "volume": 346,
+      "gamma": 0.0,
+      "implied_volatility": 0.171
+    },
+    {
+      "option_type": "call",
+      "strike": 480.5,
+      "expiration": "2026-05-29",
+      "open_interest": 1019,
+      "volume": 305,
+      "gamma": 0.0,
+      "implied_volatility": 0.1709
+    },
+    {
+      "option_type": "put",
+      "strike": 480.5,
+      "expiration": "2026-05-29",
+      "open_interest": 2673,
+      "volume": 801,
+      "gamma": 0.0,
+      "implied_volatility": 0.1709
+    },
+    {
+      "option_type": "call",
+      "strike": 483.0,
+      "expiration": "2026-05-29",
+      "open_interest": 1129,
+      "volume": 338,
+      "gamma": 5e-10,
+      "implied_volatility": 0.1708
+    },
+    {
+      "option_type": "put",
+      "strike": 483.0,
+      "expiration": "2026-05-29",
+      "open_interest": 6566,
+      "volume": 1969,
+      "gamma": 5e-10,
+      "implied_volatility": 0.1708
+    },
+    {
+      "option_type": "call",
+      "strike": 485.5,
+      "expiration": "2026-05-29",
+      "open_interest": 1231,
+      "volume": 369,
+      "gamma": 2.139e-07,
+      "implied_volatility": 0.1706
+    },
+    {
+      "option_type": "put",
+      "strike": 485.5,
+      "expiration": "2026-05-29",
+      "open_interest": 10106,
+      "volume": 3031,
+      "gamma": 2.139e-07,
+      "implied_volatility": 0.1706
+    },
+    {
+      "option_type": "call",
+      "strike": 488.0,
+      "expiration": "2026-05-29",
+      "open_interest": 1322,
+      "volume": 396,
+      "gamma": 2.8774e-05,
+      "implied_volatility": 0.1705
+    },
+    {
+      "option_type": "put",
+      "strike": 488.0,
+      "expiration": "2026-05-29",
+      "open_interest": 8516,
+      "volume": 2554,
+      "gamma": 2.8774e-05,
+      "implied_volatility": 0.1705
+    },
+    {
+      "option_type": "call",
+      "strike": 490.5,
+      "expiration": "2026-05-29",
+      "open_interest": 1397,
+      "volume": 419,
+      "gamma": 0.0012788418,
+      "implied_volatility": 0.1704
+    },
+    {
+      "option_type": "put",
+      "strike": 490.5,
+      "expiration": "2026-05-29",
+      "open_interest": 4292,
+      "volume": 1287,
+      "gamma": 0.0012788418,
+      "implied_volatility": 0.1704
+    },
+    {
+      "option_type": "call",
+      "strike": 493.0,
+      "expiration": "2026-05-29",
+      "open_interest": 1453,
+      "volume": 435,
+      "gamma": 0.0190036289,
+      "implied_volatility": 0.1703
+    },
+    {
+      "option_type": "put",
+      "strike": 493.0,
+      "expiration": "2026-05-29",
+      "open_interest": 2032,
+      "volume": 609,
+      "gamma": 0.0190036289,
+      "implied_volatility": 0.1703
+    },
+    {
+      "option_type": "call",
+      "strike": 495.5,
+      "expiration": "2026-05-29",
+      "open_interest": 1488,
+      "volume": 446,
+      "gamma": 0.0955350898,
+      "implied_volatility": 0.1701
+    },
+    {
+      "option_type": "put",
+      "strike": 495.5,
+      "expiration": "2026-05-29",
+      "open_interest": 1545,
+      "volume": 463,
+      "gamma": 0.0955350898,
+      "implied_volatility": 0.1701
+    },
+    {
+      "option_type": "call",
+      "strike": 498.0,
+      "expiration": "2026-05-29",
+      "open_interest": 1502,
+      "volume": 450,
+      "gamma": 0.1643611975,
+      "implied_volatility": 0.17
+    },
+    {
+      "option_type": "put",
+      "strike": 498.0,
+      "expiration": "2026-05-29",
+      "open_interest": 1502,
+      "volume": 450,
+      "gamma": 0.1643611975,
+      "implied_volatility": 0.17
+    },
+    {
+      "option_type": "call",
+      "strike": 500.5,
+      "expiration": "2026-05-29",
+      "open_interest": 1545,
+      "volume": 463,
+      "gamma": 0.0978766017,
+      "implied_volatility": 0.1701
+    },
+    {
+      "option_type": "put",
+      "strike": 500.5,
+      "expiration": "2026-05-29",
+      "open_interest": 1488,
+      "volume": 446,
+      "gamma": 0.0978766017,
+      "implied_volatility": 0.1701
+    },
+    {
+      "option_type": "call",
+      "strike": 503.0,
+      "expiration": "2026-05-29",
+      "open_interest": 2032,
+      "volume": 609,
+      "gamma": 0.0205912178,
+      "implied_volatility": 0.1703
+    },
+    {
+      "option_type": "put",
+      "strike": 503.0,
+      "expiration": "2026-05-29",
+      "open_interest": 1453,
+      "volume": 435,
+      "gamma": 0.0205912178,
+      "implied_volatility": 0.1703
+    },
+    {
+      "option_type": "call",
+      "strike": 505.5,
+      "expiration": "2026-05-29",
+      "open_interest": 4292,
+      "volume": 1287,
+      "gamma": 0.0015615891,
+      "implied_volatility": 0.1704
+    },
+    {
+      "option_type": "put",
+      "strike": 505.5,
+      "expiration": "2026-05-29",
+      "open_interest": 1397,
+      "volume": 419,
+      "gamma": 0.0015615891,
+      "implied_volatility": 0.1704
+    },
+    {
+      "option_type": "call",
+      "strike": 508.0,
+      "expiration": "2026-05-29",
+      "open_interest": 8516,
+      "volume": 2554,
+      "gamma": 4.35432e-05,
+      "implied_volatility": 0.1705
+    },
+    {
+      "option_type": "put",
+      "strike": 508.0,
+      "expiration": "2026-05-29",
+      "open_interest": 1322,
+      "volume": 396,
+      "gamma": 4.35432e-05,
+      "implied_volatility": 0.1705
+    },
+    {
+      "option_type": "call",
+      "strike": 510.5,
+      "expiration": "2026-05-29",
+      "open_interest": 10106,
+      "volume": 3031,
+      "gamma": 4.552e-07,
+      "implied_volatility": 0.1706
+    },
+    {
+      "option_type": "put",
+      "strike": 510.5,
+      "expiration": "2026-05-29",
+      "open_interest": 1231,
+      "volume": 369,
+      "gamma": 4.552e-07,
+      "implied_volatility": 0.1706
+    },
+    {
+      "option_type": "call",
+      "strike": 513.0,
+      "expiration": "2026-05-29",
+      "open_interest": 6566,
+      "volume": 1969,
+      "gamma": 1.8e-09,
+      "implied_volatility": 0.1708
+    },
+    {
+      "option_type": "put",
+      "strike": 513.0,
+      "expiration": "2026-05-29",
+      "open_interest": 1129,
+      "volume": 338,
+      "gamma": 1.8e-09,
+      "implied_volatility": 0.1708
+    },
+    {
+      "option_type": "call",
+      "strike": 515.5,
+      "expiration": "2026-05-29",
+      "open_interest": 2673,
+      "volume": 801,
+      "gamma": 0.0,
+      "implied_volatility": 0.1709
+    },
+    {
+      "option_type": "put",
+      "strike": 515.5,
+      "expiration": "2026-05-29",
+      "open_interest": 1019,
+      "volume": 305,
+      "gamma": 0.0,
+      "implied_volatility": 0.1709
+    },
+    {
+      "option_type": "call",
+      "strike": 518.0,
+      "expiration": "2026-05-29",
+      "open_interest": 1155,
+      "volume": 346,
+      "gamma": 0.0,
+      "implied_volatility": 0.171
+    },
+    {
+      "option_type": "put",
+      "strike": 518.0,
+      "expiration": "2026-05-29",
+      "open_interest": 906,
+      "volume": 271,
+      "gamma": 0.0,
+      "implied_volatility": 0.171
+    },
+    {
+      "option_type": "call",
+      "strike": 520.5,
+      "expiration": "2026-05-29",
+      "open_interest": 811,
+      "volume": 243,
+      "gamma": 0.0,
+      "implied_volatility": 0.1712
+    },
+    {
+      "option_type": "put",
+      "strike": 520.5,
+      "expiration": "2026-05-29",
+      "open_interest": 792,
+      "volume": 237,
+      "gamma": 0.0,
+      "implied_volatility": 0.1712
+    },
+    {
+      "option_type": "call",
+      "strike": 523.0,
+      "expiration": "2026-05-29",
+      "open_interest": 683,
+      "volume": 204,
+      "gamma": 0.0,
+      "implied_volatility": 0.1713
+    },
+    {
+      "option_type": "put",
+      "strike": 523.0,
+      "expiration": "2026-05-29",
+      "open_interest": 682,
+      "volume": 204,
+      "gamma": 0.0,
+      "implied_volatility": 0.1713
+    },
+    {
+      "option_type": "call",
+      "strike": 525.5,
+      "expiration": "2026-05-29",
+      "open_interest": 578,
+      "volume": 173,
+      "gamma": 0.0,
+      "implied_volatility": 0.1714
+    },
+    {
+      "option_type": "put",
+      "strike": 525.5,
+      "expiration": "2026-05-29",
+      "open_interest": 578,
+      "volume": 173,
+      "gamma": 0.0,
+      "implied_volatility": 0.1714
+    },
+    {
+      "option_type": "call",
+      "strike": 528.0,
+      "expiration": "2026-05-29",
+      "open_interest": 482,
+      "volume": 144,
+      "gamma": 0.0,
+      "implied_volatility": 0.1715
+    },
+    {
+      "option_type": "put",
+      "strike": 528.0,
+      "expiration": "2026-05-29",
+      "open_interest": 482,
+      "volume": 144,
+      "gamma": 0.0,
+      "implied_volatility": 0.1715
+    },
+    {
+      "option_type": "call",
+      "strike": 530.5,
+      "expiration": "2026-05-29",
+      "open_interest": 396,
+      "volume": 118,
+      "gamma": 0.0,
+      "implied_volatility": 0.1717
+    },
+    {
+      "option_type": "put",
+      "strike": 530.5,
+      "expiration": "2026-05-29",
+      "open_interest": 396,
+      "volume": 118,
+      "gamma": 0.0,
+      "implied_volatility": 0.1717
+    },
+    {
+      "option_type": "call",
+      "strike": 533.0,
+      "expiration": "2026-05-29",
+      "open_interest": 320,
+      "volume": 96,
+      "gamma": 0.0,
+      "implied_volatility": 0.1718
+    },
+    {
+      "option_type": "put",
+      "strike": 533.0,
+      "expiration": "2026-05-29",
+      "open_interest": 320,
+      "volume": 96,
+      "gamma": 0.0,
+      "implied_volatility": 0.1718
+    },
+    {
+      "option_type": "call",
+      "strike": 535.5,
+      "expiration": "2026-05-29",
+      "open_interest": 254,
+      "volume": 76,
+      "gamma": 0.0,
+      "implied_volatility": 0.1719
+    },
+    {
+      "option_type": "put",
+      "strike": 535.5,
+      "expiration": "2026-05-29",
+      "open_interest": 254,
+      "volume": 76,
+      "gamma": 0.0,
+      "implied_volatility": 0.1719
+    },
+    {
+      "option_type": "call",
+      "strike": 538.0,
+      "expiration": "2026-05-29",
+      "open_interest": 199,
+      "volume": 59,
+      "gamma": 0.0,
+      "implied_volatility": 0.172
+    },
+    {
+      "option_type": "put",
+      "strike": 538.0,
+      "expiration": "2026-05-29",
+      "open_interest": 199,
+      "volume": 59,
+      "gamma": 0.0,
+      "implied_volatility": 0.172
+    },
+    {
+      "option_type": "call",
+      "strike": 540.5,
+      "expiration": "2026-05-29",
+      "open_interest": 154,
+      "volume": 46,
+      "gamma": 0.0,
+      "implied_volatility": 0.1722
+    },
+    {
+      "option_type": "put",
+      "strike": 540.5,
+      "expiration": "2026-05-29",
+      "open_interest": 154,
+      "volume": 46,
+      "gamma": 0.0,
+      "implied_volatility": 0.1722
+    },
+    {
+      "option_type": "call",
+      "strike": 543.0,
+      "expiration": "2026-05-29",
+      "open_interest": 116,
+      "volume": 34,
+      "gamma": 0.0,
+      "implied_volatility": 0.1723
+    },
+    {
+      "option_type": "put",
+      "strike": 543.0,
+      "expiration": "2026-05-29",
+      "open_interest": 116,
+      "volume": 34,
+      "gamma": 0.0,
+      "implied_volatility": 0.1723
+    },
+    {
+      "option_type": "call",
+      "strike": 545.5,
+      "expiration": "2026-05-29",
+      "open_interest": 87,
+      "volume": 26,
+      "gamma": 0.0,
+      "implied_volatility": 0.1724
+    },
+    {
+      "option_type": "put",
+      "strike": 545.5,
+      "expiration": "2026-05-29",
+      "open_interest": 87,
+      "volume": 26,
+      "gamma": 0.0,
+      "implied_volatility": 0.1724
+    },
+    {
+      "option_type": "call",
+      "strike": 548.0,
+      "expiration": "2026-05-29",
+      "open_interest": 64,
+      "volume": 19,
+      "gamma": 0.0,
+      "implied_volatility": 0.1726
+    },
+    {
+      "option_type": "put",
+      "strike": 548.0,
+      "expiration": "2026-05-29",
+      "open_interest": 64,
+      "volume": 19,
+      "gamma": 0.0,
+      "implied_volatility": 0.1726
+    },
+    {
+      "option_type": "call",
+      "strike": 550.5,
+      "expiration": "2026-05-29",
+      "open_interest": 46,
+      "volume": 13,
+      "gamma": 0.0,
+      "implied_volatility": 0.1727
+    },
+    {
+      "option_type": "put",
+      "strike": 550.5,
+      "expiration": "2026-05-29",
+      "open_interest": 46,
+      "volume": 13,
+      "gamma": 0.0,
+      "implied_volatility": 0.1727
+    },
+    {
+      "option_type": "call",
+      "strike": 553.0,
+      "expiration": "2026-05-29",
+      "open_interest": 33,
+      "volume": 9,
+      "gamma": 0.0,
+      "implied_volatility": 0.1728
+    },
+    {
+      "option_type": "put",
+      "strike": 553.0,
+      "expiration": "2026-05-29",
+      "open_interest": 33,
+      "volume": 9,
+      "gamma": 0.0,
+      "implied_volatility": 0.1728
+    },
+    {
+      "option_type": "call",
+      "strike": 555.5,
+      "expiration": "2026-05-29",
+      "open_interest": 23,
+      "volume": 6,
+      "gamma": 0.0,
+      "implied_volatility": 0.1729
+    },
+    {
+      "option_type": "put",
+      "strike": 555.5,
+      "expiration": "2026-05-29",
+      "open_interest": 23,
+      "volume": 6,
+      "gamma": 0.0,
+      "implied_volatility": 0.1729
+    },
+    {
+      "option_type": "call",
+      "strike": 558.0,
+      "expiration": "2026-05-29",
+      "open_interest": 16,
+      "volume": 4,
+      "gamma": 0.0,
+      "implied_volatility": 0.1731
+    },
+    {
+      "option_type": "put",
+      "strike": 558.0,
+      "expiration": "2026-05-29",
+      "open_interest": 16,
+      "volume": 4,
+      "gamma": 0.0,
+      "implied_volatility": 0.1731
+    },
+    {
+      "option_type": "call",
+      "strike": 438.0,
+      "expiration": "2026-06-02",
+      "open_interest": 16,
+      "volume": 4,
+      "gamma": 0.0,
+      "implied_volatility": 0.1731
+    },
+    {
+      "option_type": "put",
+      "strike": 438.0,
+      "expiration": "2026-06-02",
+      "open_interest": 16,
+      "volume": 4,
+      "gamma": 0.0,
+      "implied_volatility": 0.1731
+    },
+    {
+      "option_type": "call",
+      "strike": 440.5,
+      "expiration": "2026-06-02",
+      "open_interest": 23,
+      "volume": 6,
+      "gamma": 0.0,
+      "implied_volatility": 0.1729
+    },
+    {
+      "option_type": "put",
+      "strike": 440.5,
+      "expiration": "2026-06-02",
+      "open_interest": 23,
+      "volume": 6,
+      "gamma": 0.0,
+      "implied_volatility": 0.1729
+    },
+    {
+      "option_type": "call",
+      "strike": 443.0,
+      "expiration": "2026-06-02",
+      "open_interest": 33,
+      "volume": 9,
+      "gamma": 0.0,
+      "implied_volatility": 0.1728
+    },
+    {
+      "option_type": "put",
+      "strike": 443.0,
+      "expiration": "2026-06-02",
+      "open_interest": 33,
+      "volume": 9,
+      "gamma": 0.0,
+      "implied_volatility": 0.1728
+    },
+    {
+      "option_type": "call",
+      "strike": 445.5,
+      "expiration": "2026-06-02",
+      "open_interest": 46,
+      "volume": 13,
+      "gamma": 2e-10,
+      "implied_volatility": 0.1727
+    },
+    {
+      "option_type": "put",
+      "strike": 445.5,
+      "expiration": "2026-06-02",
+      "open_interest": 46,
+      "volume": 13,
+      "gamma": 2e-10,
+      "implied_volatility": 0.1727
+    },
+    {
+      "option_type": "call",
+      "strike": 448.0,
+      "expiration": "2026-06-02",
+      "open_interest": 64,
+      "volume": 19,
+      "gamma": 1.3e-09,
+      "implied_volatility": 0.1726
+    },
+    {
+      "option_type": "put",
+      "strike": 448.0,
+      "expiration": "2026-06-02",
+      "open_interest": 64,
+      "volume": 19,
+      "gamma": 1.3e-09,
+      "implied_volatility": 0.1726
+    },
+    {
+      "option_type": "call",
+      "strike": 450.5,
+      "expiration": "2026-06-02",
+      "open_interest": 87,
+      "volume": 26,
+      "gamma": 7.4e-09,
+      "implied_volatility": 0.1724
+    },
+    {
+      "option_type": "put",
+      "strike": 450.5,
+      "expiration": "2026-06-02",
+      "open_interest": 87,
+      "volume": 26,
+      "gamma": 7.4e-09,
+      "implied_volatility": 0.1724
+    },
+    {
+      "option_type": "call",
+      "strike": 453.0,
+      "expiration": "2026-06-02",
+      "open_interest": 116,
+      "volume": 34,
+      "gamma": 3.84e-08,
+      "implied_volatility": 0.1723
+    },
+    {
+      "option_type": "put",
+      "strike": 453.0,
+      "expiration": "2026-06-02",
+      "open_interest": 116,
+      "volume": 34,
+      "gamma": 3.84e-08,
+      "implied_volatility": 0.1723
+    },
+    {
+      "option_type": "call",
+      "strike": 455.5,
+      "expiration": "2026-06-02",
+      "open_interest": 154,
+      "volume": 46,
+      "gamma": 1.808e-07,
+      "implied_volatility": 0.1722
+    },
+    {
+      "option_type": "put",
+      "strike": 455.5,
+      "expiration": "2026-06-02",
+      "open_interest": 154,
+      "volume": 46,
+      "gamma": 1.808e-07,
+      "implied_volatility": 0.1722
+    },
+    {
+      "option_type": "call",
+      "strike": 458.0,
+      "expiration": "2026-06-02",
+      "open_interest": 199,
+      "volume": 59,
+      "gamma": 7.718e-07,
+      "implied_volatility": 0.172
+    },
+    {
+      "option_type": "put",
+      "strike": 458.0,
+      "expiration": "2026-06-02",
+      "open_interest": 199,
+      "volume": 59,
+      "gamma": 7.718e-07,
+      "implied_volatility": 0.172
+    },
+    {
+      "option_type": "call",
+      "strike": 460.5,
+      "expiration": "2026-06-02",
+      "open_interest": 254,
+      "volume": 76,
+      "gamma": 2.9951e-06,
+      "implied_volatility": 0.1719
+    },
+    {
+      "option_type": "put",
+      "strike": 460.5,
+      "expiration": "2026-06-02",
+      "open_interest": 254,
+      "volume": 76,
+      "gamma": 2.9951e-06,
+      "implied_volatility": 0.1719
+    },
+    {
+      "option_type": "call",
+      "strike": 463.0,
+      "expiration": "2026-06-02",
+      "open_interest": 320,
+      "volume": 96,
+      "gamma": 1.05776e-05,
+      "implied_volatility": 0.1718
+    },
+    {
+      "option_type": "put",
+      "strike": 463.0,
+      "expiration": "2026-06-02",
+      "open_interest": 320,
+      "volume": 96,
+      "gamma": 1.05776e-05,
+      "implied_volatility": 0.1718
+    },
+    {
+      "option_type": "call",
+      "strike": 465.5,
+      "expiration": "2026-06-02",
+      "open_interest": 396,
+      "volume": 118,
+      "gamma": 3.40332e-05,
+      "implied_volatility": 0.1717
+    },
+    {
+      "option_type": "put",
+      "strike": 465.5,
+      "expiration": "2026-06-02",
+      "open_interest": 396,
+      "volume": 118,
+      "gamma": 3.40332e-05,
+      "implied_volatility": 0.1717
+    },
+    {
+      "option_type": "call",
+      "strike": 468.0,
+      "expiration": "2026-06-02",
+      "open_interest": 482,
+      "volume": 144,
+      "gamma": 9.98721e-05,
+      "implied_volatility": 0.1715
+    },
+    {
+      "option_type": "put",
+      "strike": 468.0,
+      "expiration": "2026-06-02",
+      "open_interest": 482,
+      "volume": 144,
+      "gamma": 9.98721e-05,
+      "implied_volatility": 0.1715
+    },
+    {
+      "option_type": "call",
+      "strike": 470.5,
+      "expiration": "2026-06-02",
+      "open_interest": 578,
+      "volume": 173,
+      "gamma": 0.0002675942,
+      "implied_volatility": 0.1714
+    },
+    {
+      "option_type": "put",
+      "strike": 470.5,
+      "expiration": "2026-06-02",
+      "open_interest": 578,
+      "volume": 173,
+      "gamma": 0.0002675942,
+      "implied_volatility": 0.1714
+    },
+    {
+      "option_type": "call",
+      "strike": 473.0,
+      "expiration": "2026-06-02",
+      "open_interest": 682,
+      "volume": 204,
+      "gamma": 0.0006553285,
+      "implied_volatility": 0.1713
+    },
+    {
+      "option_type": "put",
+      "strike": 473.0,
+      "expiration": "2026-06-02",
+      "open_interest": 683,
+      "volume": 204,
+      "gamma": 0.0006553285,
+      "implied_volatility": 0.1713
+    },
+    {
+      "option_type": "call",
+      "strike": 475.5,
+      "expiration": "2026-06-02",
+      "open_interest": 792,
+      "volume": 237,
+      "gamma": 0.0014683882,
+      "implied_volatility": 0.1712
+    },
+    {
+      "option_type": "put",
+      "strike": 475.5,
+      "expiration": "2026-06-02",
+      "open_interest": 811,
+      "volume": 243,
+      "gamma": 0.0014683882,
+      "implied_volatility": 0.1712
+    },
+    {
+      "option_type": "call",
+      "strike": 478.0,
+      "expiration": "2026-06-02",
+      "open_interest": 906,
+      "volume": 271,
+      "gamma": 0.0030134397,
+      "implied_volatility": 0.171
+    },
+    {
+      "option_type": "put",
+      "strike": 478.0,
+      "expiration": "2026-06-02",
+      "open_interest": 1155,
+      "volume": 346,
+      "gamma": 0.0030134397,
+      "implied_volatility": 0.171
+    },
+    {
+      "option_type": "call",
+      "strike": 480.5,
+      "expiration": "2026-06-02",
+      "open_interest": 1019,
+      "volume": 305,
+      "gamma": 0.0056696408,
+      "implied_volatility": 0.1709
+    },
+    {
+      "option_type": "put",
+      "strike": 480.5,
+      "expiration": "2026-06-02",
+      "open_interest": 2673,
+      "volume": 801,
+      "gamma": 0.0056696408,
+      "implied_volatility": 0.1709
+    },
+    {
+      "option_type": "call",
+      "strike": 483.0,
+      "expiration": "2026-06-02",
+      "open_interest": 1129,
+      "volume": 338,
+      "gamma": 0.0097891051,
+      "implied_volatility": 0.1708
+    },
+    {
+      "option_type": "put",
+      "strike": 483.0,
+      "expiration": "2026-06-02",
+      "open_interest": 6566,
+      "volume": 1969,
+      "gamma": 0.0097891051,
+      "implied_volatility": 0.1708
+    },
+    {
+      "option_type": "call",
+      "strike": 485.5,
+      "expiration": "2026-06-02",
+      "open_interest": 1231,
+      "volume": 369,
+      "gamma": 0.0155252803,
+      "implied_volatility": 0.1706
+    },
+    {
+      "option_type": "put",
+      "strike": 485.5,
+      "expiration": "2026-06-02",
+      "open_interest": 10106,
+      "volume": 3031,
+      "gamma": 0.0155252803,
+      "implied_volatility": 0.1706
+    },
+    {
+      "option_type": "call",
+      "strike": 488.0,
+      "expiration": "2026-06-02",
+      "open_interest": 1322,
+      "volume": 396,
+      "gamma": 0.0226386911,
+      "implied_volatility": 0.1705
+    },
+    {
+      "option_type": "put",
+      "strike": 488.0,
+      "expiration": "2026-06-02",
+      "open_interest": 8516,
+      "volume": 2554,
+      "gamma": 0.0226386911,
+      "implied_volatility": 0.1705
+    },
+    {
+      "option_type": "call",
+      "strike": 490.5,
+      "expiration": "2026-06-02",
+      "open_interest": 1397,
+      "volume": 419,
+      "gamma": 0.0303792446,
+      "implied_volatility": 0.1704
+    },
+    {
+      "option_type": "put",
+      "strike": 490.5,
+      "expiration": "2026-06-02",
+      "open_interest": 4292,
+      "volume": 1287,
+      "gamma": 0.0303792446,
+      "implied_volatility": 0.1704
+    },
+    {
+      "option_type": "call",
+      "strike": 493.0,
+      "expiration": "2026-06-02",
+      "open_interest": 1453,
+      "volume": 435,
+      "gamma": 0.0375497433,
+      "implied_volatility": 0.1703
+    },
+    {
+      "option_type": "put",
+      "strike": 493.0,
+      "expiration": "2026-06-02",
+      "open_interest": 2032,
+      "volume": 609,
+      "gamma": 0.0375497433,
+      "implied_volatility": 0.1703
+    },
+    {
+      "option_type": "call",
+      "strike": 495.5,
+      "expiration": "2026-06-02",
+      "open_interest": 1488,
+      "volume": 446,
+      "gamma": 0.0427882194,
+      "implied_volatility": 0.1701
+    },
+    {
+      "option_type": "put",
+      "strike": 495.5,
+      "expiration": "2026-06-02",
+      "open_interest": 1545,
+      "volume": 463,
+      "gamma": 0.0427882194,
+      "implied_volatility": 0.1701
+    },
+    {
+      "option_type": "call",
+      "strike": 498.0,
+      "expiration": "2026-06-02",
+      "open_interest": 1502,
+      "volume": 450,
+      "gamma": 0.0449887689,
+      "implied_volatility": 0.17
+    },
+    {
+      "option_type": "put",
+      "strike": 498.0,
+      "expiration": "2026-06-02",
+      "open_interest": 1502,
+      "volume": 450,
+      "gamma": 0.0449887689,
+      "implied_volatility": 0.17
+    },
+    {
+      "option_type": "call",
+      "strike": 500.5,
+      "expiration": "2026-06-02",
+      "open_interest": 1545,
+      "volume": 463,
+      "gamma": 0.0436218176,
+      "implied_volatility": 0.1701
+    },
+    {
+      "option_type": "put",
+      "strike": 500.5,
+      "expiration": "2026-06-02",
+      "open_interest": 1488,
+      "volume": 446,
+      "gamma": 0.0436218176,
+      "implied_volatility": 0.1701
+    },
+    {
+      "option_type": "call",
+      "strike": 503.0,
+      "expiration": "2026-06-02",
+      "open_interest": 2032,
+      "volume": 609,
+      "gamma": 0.0391188159,
+      "implied_volatility": 0.1703
+    },
+    {
+      "option_type": "put",
+      "strike": 503.0,
+      "expiration": "2026-06-02",
+      "open_interest": 1453,
+      "volume": 435,
+      "gamma": 0.0391188159,
+      "implied_volatility": 0.1703
+    },
+    {
+      "option_type": "call",
+      "strike": 505.5,
+      "expiration": "2026-06-02",
+      "open_interest": 4292,
+      "volume": 1287,
+      "gamma": 0.0324942909,
+      "implied_volatility": 0.1704
+    },
+    {
+      "option_type": "put",
+      "strike": 505.5,
+      "expiration": "2026-06-02",
+      "open_interest": 1397,
+      "volume": 419,
+      "gamma": 0.0324942909,
+      "implied_volatility": 0.1704
+    },
+    {
+      "option_type": "call",
+      "strike": 508.0,
+      "expiration": "2026-06-02",
+      "open_interest": 8516,
+      "volume": 2554,
+      "gamma": 0.0250387219,
+      "implied_volatility": 0.1705
+    },
+    {
+      "option_type": "put",
+      "strike": 508.0,
+      "expiration": "2026-06-02",
+      "open_interest": 1322,
+      "volume": 396,
+      "gamma": 0.0250387219,
+      "implied_volatility": 0.1705
+    },
+    {
+      "option_type": "call",
+      "strike": 510.5,
+      "expiration": "2026-06-02",
+      "open_interest": 10106,
+      "volume": 3031,
+      "gamma": 0.0179239102,
+      "implied_volatility": 0.1706
+    },
+    {
+      "option_type": "put",
+      "strike": 510.5,
+      "expiration": "2026-06-02",
+      "open_interest": 1231,
+      "volume": 369,
+      "gamma": 0.0179239102,
+      "implied_volatility": 0.1706
+    },
+    {
+      "option_type": "call",
+      "strike": 513.0,
+      "expiration": "2026-06-02",
+      "open_interest": 6566,
+      "volume": 1969,
+      "gamma": 0.0119368136,
+      "implied_volatility": 0.1708
+    },
+    {
+      "option_type": "put",
+      "strike": 513.0,
+      "expiration": "2026-06-02",
+      "open_interest": 1129,
+      "volume": 338,
+      "gamma": 0.0119368136,
+      "implied_volatility": 0.1708
+    },
+    {
+      "option_type": "call",
+      "strike": 515.5,
+      "expiration": "2026-06-02",
+      "open_interest": 2673,
+      "volume": 801,
+      "gamma": 0.0074060507,
+      "implied_volatility": 0.1709
+    },
+    {
+      "option_type": "put",
+      "strike": 515.5,
+      "expiration": "2026-06-02",
+      "open_interest": 1019,
+      "volume": 305,
+      "gamma": 0.0074060507,
+      "implied_volatility": 0.1709
+    },
+    {
+      "option_type": "call",
+      "strike": 518.0,
+      "expiration": "2026-06-02",
+      "open_interest": 1155,
+      "volume": 346,
+      "gamma": 0.0042867034,
+      "implied_volatility": 0.171
+    },
+    {
+      "option_type": "put",
+      "strike": 518.0,
+      "expiration": "2026-06-02",
+      "open_interest": 906,
+      "volume": 271,
+      "gamma": 0.0042867034,
+      "implied_volatility": 0.171
+    },
+    {
+      "option_type": "call",
+      "strike": 520.5,
+      "expiration": "2026-06-02",
+      "open_interest": 811,
+      "volume": 243,
+      "gamma": 0.0023178382,
+      "implied_volatility": 0.1712
+    },
+    {
+      "option_type": "put",
+      "strike": 520.5,
+      "expiration": "2026-06-02",
+      "open_interest": 792,
+      "volume": 237,
+      "gamma": 0.0023178382,
+      "implied_volatility": 0.1712
+    },
+    {
+      "option_type": "call",
+      "strike": 523.0,
+      "expiration": "2026-06-02",
+      "open_interest": 683,
+      "volume": 204,
+      "gamma": 0.0011723005,
+      "implied_volatility": 0.1713
+    },
+    {
+      "option_type": "put",
+      "strike": 523.0,
+      "expiration": "2026-06-02",
+      "open_interest": 682,
+      "volume": 204,
+      "gamma": 0.0011723005,
+      "implied_volatility": 0.1713
+    },
+    {
+      "option_type": "call",
+      "strike": 525.5,
+      "expiration": "2026-06-02",
+      "open_interest": 578,
+      "volume": 173,
+      "gamma": 0.0005553328,
+      "implied_volatility": 0.1714
+    },
+    {
+      "option_type": "put",
+      "strike": 525.5,
+      "expiration": "2026-06-02",
+      "open_interest": 578,
+      "volume": 173,
+      "gamma": 0.0005553328,
+      "implied_volatility": 0.1714
+    },
+    {
+      "option_type": "call",
+      "strike": 528.0,
+      "expiration": "2026-06-02",
+      "open_interest": 482,
+      "volume": 144,
+      "gamma": 0.0002467049,
+      "implied_volatility": 0.1715
+    },
+    {
+      "option_type": "put",
+      "strike": 528.0,
+      "expiration": "2026-06-02",
+      "open_interest": 482,
+      "volume": 144,
+      "gamma": 0.0002467049,
+      "implied_volatility": 0.1715
+    },
+    {
+      "option_type": "call",
+      "strike": 530.5,
+      "expiration": "2026-06-02",
+      "open_interest": 396,
+      "volume": 118,
+      "gamma": 0.000102909,
+      "implied_volatility": 0.1717
+    },
+    {
+      "option_type": "put",
+      "strike": 530.5,
+      "expiration": "2026-06-02",
+      "open_interest": 396,
+      "volume": 118,
+      "gamma": 0.000102909,
+      "implied_volatility": 0.1717
+    },
+    {
+      "option_type": "call",
+      "strike": 533.0,
+      "expiration": "2026-06-02",
+      "open_interest": 320,
+      "volume": 96,
+      "gamma": 4.03563e-05,
+      "implied_volatility": 0.1718
+    },
+    {
+      "option_type": "put",
+      "strike": 533.0,
+      "expiration": "2026-06-02",
+      "open_interest": 320,
+      "volume": 96,
+      "gamma": 4.03563e-05,
+      "implied_volatility": 0.1718
+    },
+    {
+      "option_type": "call",
+      "strike": 535.5,
+      "expiration": "2026-06-02",
+      "open_interest": 254,
+      "volume": 76,
+      "gamma": 1.48961e-05,
+      "implied_volatility": 0.1719
+    },
+    {
+      "option_type": "put",
+      "strike": 535.5,
+      "expiration": "2026-06-02",
+      "open_interest": 254,
+      "volume": 76,
+      "gamma": 1.48961e-05,
+      "implied_volatility": 0.1719
+    },
+    {
+      "option_type": "call",
+      "strike": 538.0,
+      "expiration": "2026-06-02",
+      "open_interest": 199,
+      "volume": 59,
+      "gamma": 5.1814e-06,
+      "implied_volatility": 0.172
+    },
+    {
+      "option_type": "put",
+      "strike": 538.0,
+      "expiration": "2026-06-02",
+      "open_interest": 199,
+      "volume": 59,
+      "gamma": 5.1814e-06,
+      "implied_volatility": 0.172
+    },
+    {
+      "option_type": "call",
+      "strike": 540.5,
+      "expiration": "2026-06-02",
+      "open_interest": 154,
+      "volume": 46,
+      "gamma": 1.7004e-06,
+      "implied_volatility": 0.1722
+    },
+    {
+      "option_type": "put",
+      "strike": 540.5,
+      "expiration": "2026-06-02",
+      "open_interest": 154,
+      "volume": 46,
+      "gamma": 1.7004e-06,
+      "implied_volatility": 0.1722
+    },
+    {
+      "option_type": "call",
+      "strike": 543.0,
+      "expiration": "2026-06-02",
+      "open_interest": 116,
+      "volume": 34,
+      "gamma": 5.27e-07,
+      "implied_volatility": 0.1723
+    },
+    {
+      "option_type": "put",
+      "strike": 543.0,
+      "expiration": "2026-06-02",
+      "open_interest": 116,
+      "volume": 34,
+      "gamma": 5.27e-07,
+      "implied_volatility": 0.1723
+    },
+    {
+      "option_type": "call",
+      "strike": 545.5,
+      "expiration": "2026-06-02",
+      "open_interest": 87,
+      "volume": 26,
+      "gamma": 1.545e-07,
+      "implied_volatility": 0.1724
+    },
+    {
+      "option_type": "put",
+      "strike": 545.5,
+      "expiration": "2026-06-02",
+      "open_interest": 87,
+      "volume": 26,
+      "gamma": 1.545e-07,
+      "implied_volatility": 0.1724
+    },
+    {
+      "option_type": "call",
+      "strike": 548.0,
+      "expiration": "2026-06-02",
+      "open_interest": 64,
+      "volume": 19,
+      "gamma": 4.29e-08,
+      "implied_volatility": 0.1726
+    },
+    {
+      "option_type": "put",
+      "strike": 548.0,
+      "expiration": "2026-06-02",
+      "open_interest": 64,
+      "volume": 19,
+      "gamma": 4.29e-08,
+      "implied_volatility": 0.1726
+    },
+    {
+      "option_type": "call",
+      "strike": 550.5,
+      "expiration": "2026-06-02",
+      "open_interest": 46,
+      "volume": 13,
+      "gamma": 1.13e-08,
+      "implied_volatility": 0.1727
+    },
+    {
+      "option_type": "put",
+      "strike": 550.5,
+      "expiration": "2026-06-02",
+      "open_interest": 46,
+      "volume": 13,
+      "gamma": 1.13e-08,
+      "implied_volatility": 0.1727
+    },
+    {
+      "option_type": "call",
+      "strike": 553.0,
+      "expiration": "2026-06-02",
+      "open_interest": 33,
+      "volume": 9,
+      "gamma": 2.8e-09,
+      "implied_volatility": 0.1728
+    },
+    {
+      "option_type": "put",
+      "strike": 553.0,
+      "expiration": "2026-06-02",
+      "open_interest": 33,
+      "volume": 9,
+      "gamma": 2.8e-09,
+      "implied_volatility": 0.1728
+    },
+    {
+      "option_type": "call",
+      "strike": 555.5,
+      "expiration": "2026-06-02",
+      "open_interest": 23,
+      "volume": 6,
+      "gamma": 7e-10,
+      "implied_volatility": 0.1729
+    },
+    {
+      "option_type": "put",
+      "strike": 555.5,
+      "expiration": "2026-06-02",
+      "open_interest": 23,
+      "volume": 6,
+      "gamma": 7e-10,
+      "implied_volatility": 0.1729
+    },
+    {
+      "option_type": "call",
+      "strike": 558.0,
+      "expiration": "2026-06-02",
+      "open_interest": 16,
+      "volume": 4,
+      "gamma": 1e-10,
+      "implied_volatility": 0.1731
+    },
+    {
+      "option_type": "put",
+      "strike": 558.0,
+      "expiration": "2026-06-02",
+      "open_interest": 16,
+      "volume": 4,
+      "gamma": 1e-10,
+      "implied_volatility": 0.1731
+    },
+    {
+      "option_type": "call",
+      "strike": 438.0,
+      "expiration": "2026-06-23",
+      "open_interest": 16,
+      "volume": 4,
+      "gamma": 0.0002508199,
+      "implied_volatility": 0.1731
+    },
+    {
+      "option_type": "put",
+      "strike": 438.0,
+      "expiration": "2026-06-23",
+      "open_interest": 16,
+      "volume": 4,
+      "gamma": 0.0002508199,
+      "implied_volatility": 0.1731
+    },
+    {
+      "option_type": "call",
+      "strike": 440.5,
+      "expiration": "2026-06-23",
+      "open_interest": 23,
+      "volume": 6,
+      "gamma": 0.0003572713,
+      "implied_volatility": 0.1729
+    },
+    {
+      "option_type": "put",
+      "strike": 440.5,
+      "expiration": "2026-06-23",
+      "open_interest": 23,
+      "volume": 6,
+      "gamma": 0.0003572713,
+      "implied_volatility": 0.1729
+    },
+    {
+      "option_type": "call",
+      "strike": 443.0,
+      "expiration": "2026-06-23",
+      "open_interest": 33,
+      "volume": 9,
+      "gamma": 0.0005004767,
+      "implied_volatility": 0.1728
+    },
+    {
+      "option_type": "put",
+      "strike": 443.0,
+      "expiration": "2026-06-23",
+      "open_interest": 33,
+      "volume": 9,
+      "gamma": 0.0005004767,
+      "implied_volatility": 0.1728
+    },
+    {
+      "option_type": "call",
+      "strike": 445.5,
+      "expiration": "2026-06-23",
+      "open_interest": 46,
+      "volume": 13,
+      "gamma": 0.0006896228,
+      "implied_volatility": 0.1727
+    },
+    {
+      "option_type": "put",
+      "strike": 445.5,
+      "expiration": "2026-06-23",
+      "open_interest": 46,
+      "volume": 13,
+      "gamma": 0.0006896228,
+      "implied_volatility": 0.1727
+    },
+    {
+      "option_type": "call",
+      "strike": 448.0,
+      "expiration": "2026-06-23",
+      "open_interest": 64,
+      "volume": 19,
+      "gamma": 0.0009349146,
+      "implied_volatility": 0.1726
+    },
+    {
+      "option_type": "put",
+      "strike": 448.0,
+      "expiration": "2026-06-23",
+      "open_interest": 64,
+      "volume": 19,
+      "gamma": 0.0009349146,
+      "implied_volatility": 0.1726
+    },
+    {
+      "option_type": "call",
+      "strike": 450.5,
+      "expiration": "2026-06-23",
+      "open_interest": 87,
+      "volume": 26,
+      "gamma": 0.0012472497,
+      "implied_volatility": 0.1724
+    },
+    {
+      "option_type": "put",
+      "strike": 450.5,
+      "expiration": "2026-06-23",
+      "open_interest": 87,
+      "volume": 26,
+      "gamma": 0.0012472497,
+      "implied_volatility": 0.1724
+    },
+    {
+      "option_type": "call",
+      "strike": 453.0,
+      "expiration": "2026-06-23",
+      "open_interest": 116,
+      "volume": 34,
+      "gamma": 0.0016377317,
+      "implied_volatility": 0.1723
+    },
+    {
+      "option_type": "put",
+      "strike": 453.0,
+      "expiration": "2026-06-23",
+      "open_interest": 116,
+      "volume": 34,
+      "gamma": 0.0016377317,
+      "implied_volatility": 0.1723
+    },
+    {
+      "option_type": "call",
+      "strike": 455.5,
+      "expiration": "2026-06-23",
+      "open_interest": 154,
+      "volume": 46,
+      "gamma": 0.00211702,
+      "implied_volatility": 0.1722
+    },
+    {
+      "option_type": "put",
+      "strike": 455.5,
+      "expiration": "2026-06-23",
+      "open_interest": 154,
+      "volume": 46,
+      "gamma": 0.00211702,
+      "implied_volatility": 0.1722
+    },
+    {
+      "option_type": "call",
+      "strike": 458.0,
+      "expiration": "2026-06-23",
+      "open_interest": 199,
+      "volume": 59,
+      "gamma": 0.0026945312,
+      "implied_volatility": 0.172
+    },
+    {
+      "option_type": "put",
+      "strike": 458.0,
+      "expiration": "2026-06-23",
+      "open_interest": 199,
+      "volume": 59,
+      "gamma": 0.0026945312,
+      "implied_volatility": 0.172
+    },
+    {
+      "option_type": "call",
+      "strike": 460.5,
+      "expiration": "2026-06-23",
+      "open_interest": 254,
+      "volume": 76,
+      "gamma": 0.0033775287,
+      "implied_volatility": 0.1719
+    },
+    {
+      "option_type": "put",
+      "strike": 460.5,
+      "expiration": "2026-06-23",
+      "open_interest": 254,
+      "volume": 76,
+      "gamma": 0.0033775287,
+      "implied_volatility": 0.1719
+    },
+    {
+      "option_type": "call",
+      "strike": 463.0,
+      "expiration": "2026-06-23",
+      "open_interest": 320,
+      "volume": 96,
+      "gamma": 0.0041701556,
+      "implied_volatility": 0.1718
+    },
+    {
+      "option_type": "put",
+      "strike": 463.0,
+      "expiration": "2026-06-23",
+      "open_interest": 320,
+      "volume": 96,
+      "gamma": 0.0041701556,
+      "implied_volatility": 0.1718
+    },
+    {
+      "option_type": "call",
+      "strike": 465.5,
+      "expiration": "2026-06-23",
+      "open_interest": 396,
+      "volume": 118,
+      "gamma": 0.0050724886,
+      "implied_volatility": 0.1717
+    },
+    {
+      "option_type": "put",
+      "strike": 465.5,
+      "expiration": "2026-06-23",
+      "open_interest": 396,
+      "volume": 118,
+      "gamma": 0.0050724886,
+      "implied_volatility": 0.1717
+    },
+    {
+      "option_type": "call",
+      "strike": 468.0,
+      "expiration": "2026-06-23",
+      "open_interest": 482,
+      "volume": 144,
+      "gamma": 0.0060796993,
+      "implied_volatility": 0.1715
+    },
+    {
+      "option_type": "put",
+      "strike": 468.0,
+      "expiration": "2026-06-23",
+      "open_interest": 482,
+      "volume": 144,
+      "gamma": 0.0060796993,
+      "implied_volatility": 0.1715
+    },
+    {
+      "option_type": "call",
+      "strike": 470.5,
+      "expiration": "2026-06-23",
+      "open_interest": 578,
+      "volume": 173,
+      "gamma": 0.0071814212,
+      "implied_volatility": 0.1714
+    },
+    {
+      "option_type": "put",
+      "strike": 470.5,
+      "expiration": "2026-06-23",
+      "open_interest": 578,
+      "volume": 173,
+      "gamma": 0.0071814212,
+      "implied_volatility": 0.1714
+    },
+    {
+      "option_type": "call",
+      "strike": 473.0,
+      "expiration": "2026-06-23",
+      "open_interest": 682,
+      "volume": 204,
+      "gamma": 0.00836141,
+      "implied_volatility": 0.1713
+    },
+    {
+      "option_type": "put",
+      "strike": 473.0,
+      "expiration": "2026-06-23",
+      "open_interest": 683,
+      "volume": 204,
+      "gamma": 0.00836141,
+      "implied_volatility": 0.1713
+    },
+    {
+      "option_type": "call",
+      "strike": 475.5,
+      "expiration": "2026-06-23",
+      "open_interest": 792,
+      "volume": 237,
+      "gamma": 0.0095975754,
+      "implied_volatility": 0.1712
+    },
+    {
+      "option_type": "put",
+      "strike": 475.5,
+      "expiration": "2026-06-23",
+      "open_interest": 811,
+      "volume": 243,
+      "gamma": 0.0095975754,
+      "implied_volatility": 0.1712
+    },
+    {
+      "option_type": "call",
+      "strike": 478.0,
+      "expiration": "2026-06-23",
+      "open_interest": 906,
+      "volume": 271,
+      "gamma": 0.0108624318,
+      "implied_volatility": 0.171
+    },
+    {
+      "option_type": "put",
+      "strike": 478.0,
+      "expiration": "2026-06-23",
+      "open_interest": 1155,
+      "volume": 346,
+      "gamma": 0.0108624318,
+      "implied_volatility": 0.171
+    },
+    {
+      "option_type": "call",
+      "strike": 480.5,
+      "expiration": "2026-06-23",
+      "open_interest": 1019,
+      "volume": 305,
+      "gamma": 0.0121239831,
+      "implied_volatility": 0.1709
+    },
+    {
+      "option_type": "put",
+      "strike": 480.5,
+      "expiration": "2026-06-23",
+      "open_interest": 2673,
+      "volume": 801,
+      "gamma": 0.0121239831,
+      "implied_volatility": 0.1709
+    },
+    {
+      "option_type": "call",
+      "strike": 483.0,
+      "expiration": "2026-06-23",
+      "open_interest": 1129,
+      "volume": 338,
+      "gamma": 0.0133470153,
+      "implied_volatility": 0.1708
+    },
+    {
+      "option_type": "put",
+      "strike": 483.0,
+      "expiration": "2026-06-23",
+      "open_interest": 6566,
+      "volume": 1969,
+      "gamma": 0.0133470153,
+      "implied_volatility": 0.1708
+    },
+    {
+      "option_type": "call",
+      "strike": 485.5,
+      "expiration": "2026-06-23",
+      "open_interest": 1231,
+      "volume": 369,
+      "gamma": 0.0144947276,
+      "implied_volatility": 0.1706
+    },
+    {
+      "option_type": "put",
+      "strike": 485.5,
+      "expiration": "2026-06-23",
+      "open_interest": 10106,
+      "volume": 3031,
+      "gamma": 0.0144947276,
+      "implied_volatility": 0.1706
+    },
+    {
+      "option_type": "call",
+      "strike": 488.0,
+      "expiration": "2026-06-23",
+      "open_interest": 1322,
+      "volume": 396,
+      "gamma": 0.0155305989,
+      "implied_volatility": 0.1705
+    },
+    {
+      "option_type": "put",
+      "strike": 488.0,
+      "expiration": "2026-06-23",
+      "open_interest": 8516,
+      "volume": 2554,
+      "gamma": 0.0155305989,
+      "implied_volatility": 0.1705
+    },
+    {
+      "option_type": "call",
+      "strike": 490.5,
+      "expiration": "2026-06-23",
+      "open_interest": 1397,
+      "volume": 419,
+      "gamma": 0.0164203528,
+      "implied_volatility": 0.1704
+    },
+    {
+      "option_type": "put",
+      "strike": 490.5,
+      "expiration": "2026-06-23",
+      "open_interest": 4292,
+      "volume": 1287,
+      "gamma": 0.0164203528,
+      "implied_volatility": 0.1704
+    },
+    {
+      "option_type": "call",
+      "strike": 493.0,
+      "expiration": "2026-06-23",
+      "open_interest": 1453,
+      "volume": 435,
+      "gamma": 0.0171338729,
+      "implied_volatility": 0.1703
+    },
+    {
+      "option_type": "put",
+      "strike": 493.0,
+      "expiration": "2026-06-23",
+      "open_interest": 2032,
+      "volume": 609,
+      "gamma": 0.0171338729,
+      "implied_volatility": 0.1703
+    },
+    {
+      "option_type": "call",
+      "strike": 495.5,
+      "expiration": "2026-06-23",
+      "open_interest": 1488,
+      "volume": 446,
+      "gamma": 0.0176469145,
+      "implied_volatility": 0.1701
+    },
+    {
+      "option_type": "put",
+      "strike": 495.5,
+      "expiration": "2026-06-23",
+      "open_interest": 1545,
+      "volume": 463,
+      "gamma": 0.0176469145,
+      "implied_volatility": 0.1701
+    },
+    {
+      "option_type": "call",
+      "strike": 498.0,
+      "expiration": "2026-06-23",
+      "open_interest": 1502,
+      "volume": 450,
+      "gamma": 0.017942478,
+      "implied_volatility": 0.17
+    },
+    {
+      "option_type": "put",
+      "strike": 498.0,
+      "expiration": "2026-06-23",
+      "open_interest": 1502,
+      "volume": 450,
+      "gamma": 0.017942478,
+      "implied_volatility": 0.17
+    },
+    {
+      "option_type": "call",
+      "strike": 500.5,
+      "expiration": "2026-06-23",
+      "open_interest": 1545,
+      "volume": 463,
+      "gamma": 0.0179846843,
+      "implied_volatility": 0.1701
+    },
+    {
+      "option_type": "put",
+      "strike": 500.5,
+      "expiration": "2026-06-23",
+      "open_interest": 1488,
+      "volume": 446,
+      "gamma": 0.0179846843,
+      "implied_volatility": 0.1701
+    },
+    {
+      "option_type": "call",
+      "strike": 503.0,
+      "expiration": "2026-06-23",
+      "open_interest": 2032,
+      "volume": 609,
+      "gamma": 0.0178021265,
+      "implied_volatility": 0.1703
+    },
+    {
+      "option_type": "put",
+      "strike": 503.0,
+      "expiration": "2026-06-23",
+      "open_interest": 1453,
+      "volume": 435,
+      "gamma": 0.0178021265,
+      "implied_volatility": 0.1703
+    },
+    {
+      "option_type": "call",
+      "strike": 505.5,
+      "expiration": "2026-06-23",
+      "open_interest": 4292,
+      "volume": 1287,
+      "gamma": 0.0174058409,
+      "implied_volatility": 0.1704
+    },
+    {
+      "option_type": "put",
+      "strike": 505.5,
+      "expiration": "2026-06-23",
+      "open_interest": 1397,
+      "volume": 419,
+      "gamma": 0.0174058409,
+      "implied_volatility": 0.1704
+    },
+    {
+      "option_type": "call",
+      "strike": 508.0,
+      "expiration": "2026-06-23",
+      "open_interest": 8516,
+      "volume": 2554,
+      "gamma": 0.0168141739,
+      "implied_volatility": 0.1705
+    },
+    {
+      "option_type": "put",
+      "strike": 508.0,
+      "expiration": "2026-06-23",
+      "open_interest": 1322,
+      "volume": 396,
+      "gamma": 0.0168141739,
+      "implied_volatility": 0.1705
+    },
+    {
+      "option_type": "call",
+      "strike": 510.5,
+      "expiration": "2026-06-23",
+      "open_interest": 10106,
+      "volume": 3031,
+      "gamma": 0.0160514691,
+      "implied_volatility": 0.1706
+    },
+    {
+      "option_type": "put",
+      "strike": 510.5,
+      "expiration": "2026-06-23",
+      "open_interest": 1231,
+      "volume": 369,
+      "gamma": 0.0160514691,
+      "implied_volatility": 0.1706
+    },
+    {
+      "option_type": "call",
+      "strike": 513.0,
+      "expiration": "2026-06-23",
+      "open_interest": 6566,
+      "volume": 1969,
+      "gamma": 0.0151464946,
+      "implied_volatility": 0.1708
+    },
+    {
+      "option_type": "put",
+      "strike": 513.0,
+      "expiration": "2026-06-23",
+      "open_interest": 1129,
+      "volume": 338,
+      "gamma": 0.0151464946,
+      "implied_volatility": 0.1708
+    },
+    {
+      "option_type": "call",
+      "strike": 515.5,
+      "expiration": "2026-06-23",
+      "open_interest": 2673,
+      "volume": 801,
+      "gamma": 0.0141307438,
+      "implied_volatility": 0.1709
+    },
+    {
+      "option_type": "put",
+      "strike": 515.5,
+      "expiration": "2026-06-23",
+      "open_interest": 1019,
+      "volume": 305,
+      "gamma": 0.0141307438,
+      "implied_volatility": 0.1709
+    },
+    {
+      "option_type": "call",
+      "strike": 518.0,
+      "expiration": "2026-06-23",
+      "open_interest": 1155,
+      "volume": 346,
+      "gamma": 0.0130367407,
+      "implied_volatility": 0.171
+    },
+    {
+      "option_type": "put",
+      "strike": 518.0,
+      "expiration": "2026-06-23",
+      "open_interest": 906,
+      "volume": 271,
+      "gamma": 0.0130367407,
+      "implied_volatility": 0.171
+    },
+    {
+      "option_type": "call",
+      "strike": 520.5,
+      "expiration": "2026-06-23",
+      "open_interest": 811,
+      "volume": 243,
+      "gamma": 0.0118964639,
+      "implied_volatility": 0.1712
+    },
+    {
+      "option_type": "put",
+      "strike": 520.5,
+      "expiration": "2026-06-23",
+      "open_interest": 792,
+      "volume": 237,
+      "gamma": 0.0118964639,
+      "implied_volatility": 0.1712
+    },
+    {
+      "option_type": "call",
+      "strike": 523.0,
+      "expiration": "2026-06-23",
+      "open_interest": 683,
+      "volume": 204,
+      "gamma": 0.0107399821,
+      "implied_volatility": 0.1713
+    },
+    {
+      "option_type": "put",
+      "strike": 523.0,
+      "expiration": "2026-06-23",
+      "open_interest": 682,
+      "volume": 204,
+      "gamma": 0.0107399821,
+      "implied_volatility": 0.1713
+    },
+    {
+      "option_type": "call",
+      "strike": 525.5,
+      "expiration": "2026-06-23",
+      "open_interest": 578,
+      "volume": 173,
+      "gamma": 0.0095943647,
+      "implied_volatility": 0.1714
+    },
+    {
+      "option_type": "put",
+      "strike": 525.5,
+      "expiration": "2026-06-23",
+      "open_interest": 578,
+      "volume": 173,
+      "gamma": 0.0095943647,
+      "implied_volatility": 0.1714
+    },
+    {
+      "option_type": "call",
+      "strike": 528.0,
+      "expiration": "2026-06-23",
+      "open_interest": 482,
+      "volume": 144,
+      "gamma": 0.0084829004,
+      "implied_volatility": 0.1715
+    },
+    {
+      "option_type": "put",
+      "strike": 528.0,
+      "expiration": "2026-06-23",
+      "open_interest": 482,
+      "volume": 144,
+      "gamma": 0.0084829004,
+      "implied_volatility": 0.1715
+    },
+    {
+      "option_type": "call",
+      "strike": 530.5,
+      "expiration": "2026-06-23",
+      "open_interest": 396,
+      "volume": 118,
+      "gamma": 0.0074246297,
+      "implied_volatility": 0.1717
+    },
+    {
+      "option_type": "put",
+      "strike": 530.5,
+      "expiration": "2026-06-23",
+      "open_interest": 396,
+      "volume": 118,
+      "gamma": 0.0074246297,
+      "implied_volatility": 0.1717
+    },
+    {
+      "option_type": "call",
+      "strike": 533.0,
+      "expiration": "2026-06-23",
+      "open_interest": 320,
+      "volume": 96,
+      "gamma": 0.0064341721,
+      "implied_volatility": 0.1718
+    },
+    {
+      "option_type": "put",
+      "strike": 533.0,
+      "expiration": "2026-06-23",
+      "open_interest": 320,
+      "volume": 96,
+      "gamma": 0.0064341721,
+      "implied_volatility": 0.1718
+    },
+    {
+      "option_type": "call",
+      "strike": 535.5,
+      "expiration": "2026-06-23",
+      "open_interest": 254,
+      "volume": 76,
+      "gamma": 0.0055218113,
+      "implied_volatility": 0.1719
+    },
+    {
+      "option_type": "put",
+      "strike": 535.5,
+      "expiration": "2026-06-23",
+      "open_interest": 254,
+      "volume": 76,
+      "gamma": 0.0055218113,
+      "implied_volatility": 0.1719
+    },
+    {
+      "option_type": "call",
+      "strike": 538.0,
+      "expiration": "2026-06-23",
+      "open_interest": 199,
+      "volume": 59,
+      "gamma": 0.0046937878,
+      "implied_volatility": 0.172
+    },
+    {
+      "option_type": "put",
+      "strike": 538.0,
+      "expiration": "2026-06-23",
+      "open_interest": 199,
+      "volume": 59,
+      "gamma": 0.0046937878,
+      "implied_volatility": 0.172
+    },
+    {
+      "option_type": "call",
+      "strike": 540.5,
+      "expiration": "2026-06-23",
+      "open_interest": 154,
+      "volume": 46,
+      "gamma": 0.0039527451,
+      "implied_volatility": 0.1722
+    },
+    {
+      "option_type": "put",
+      "strike": 540.5,
+      "expiration": "2026-06-23",
+      "open_interest": 154,
+      "volume": 46,
+      "gamma": 0.0039527451,
+      "implied_volatility": 0.1722
+    },
+    {
+      "option_type": "call",
+      "strike": 543.0,
+      "expiration": "2026-06-23",
+      "open_interest": 116,
+      "volume": 34,
+      "gamma": 0.0032982728,
+      "implied_volatility": 0.1723
+    },
+    {
+      "option_type": "put",
+      "strike": 543.0,
+      "expiration": "2026-06-23",
+      "open_interest": 116,
+      "volume": 34,
+      "gamma": 0.0032982728,
+      "implied_volatility": 0.1723
+    },
+    {
+      "option_type": "call",
+      "strike": 545.5,
+      "expiration": "2026-06-23",
+      "open_interest": 87,
+      "volume": 26,
+      "gamma": 0.0027274967,
+      "implied_volatility": 0.1724
+    },
+    {
+      "option_type": "put",
+      "strike": 545.5,
+      "expiration": "2026-06-23",
+      "open_interest": 87,
+      "volume": 26,
+      "gamma": 0.0027274967,
+      "implied_volatility": 0.1724
+    },
+    {
+      "option_type": "call",
+      "strike": 548.0,
+      "expiration": "2026-06-23",
+      "open_interest": 64,
+      "volume": 19,
+      "gamma": 0.0022356708,
+      "implied_volatility": 0.1726
+    },
+    {
+      "option_type": "put",
+      "strike": 548.0,
+      "expiration": "2026-06-23",
+      "open_interest": 64,
+      "volume": 19,
+      "gamma": 0.0022356708,
+      "implied_volatility": 0.1726
+    },
+    {
+      "option_type": "call",
+      "strike": 550.5,
+      "expiration": "2026-06-23",
+      "open_interest": 46,
+      "volume": 13,
+      "gamma": 0.0018167369,
+      "implied_volatility": 0.1727
+    },
+    {
+      "option_type": "put",
+      "strike": 550.5,
+      "expiration": "2026-06-23",
+      "open_interest": 46,
+      "volume": 13,
+      "gamma": 0.0018167369,
+      "implied_volatility": 0.1727
+    },
+    {
+      "option_type": "call",
+      "strike": 553.0,
+      "expiration": "2026-06-23",
+      "open_interest": 33,
+      "volume": 9,
+      "gamma": 0.0014638282,
+      "implied_volatility": 0.1728
+    },
+    {
+      "option_type": "put",
+      "strike": 553.0,
+      "expiration": "2026-06-23",
+      "open_interest": 33,
+      "volume": 9,
+      "gamma": 0.0014638282,
+      "implied_volatility": 0.1728
+    },
+    {
+      "option_type": "call",
+      "strike": 555.5,
+      "expiration": "2026-06-23",
+      "open_interest": 23,
+      "volume": 6,
+      "gamma": 0.0011696984,
+      "implied_volatility": 0.1729
+    },
+    {
+      "option_type": "put",
+      "strike": 555.5,
+      "expiration": "2026-06-23",
+      "open_interest": 23,
+      "volume": 6,
+      "gamma": 0.0011696984,
+      "implied_volatility": 0.1729
+    },
+    {
+      "option_type": "call",
+      "strike": 558.0,
+      "expiration": "2026-06-23",
+      "open_interest": 16,
+      "volume": 4,
+      "gamma": 0.0009270733,
+      "implied_volatility": 0.1731
+    },
+    {
+      "option_type": "put",
+      "strike": 558.0,
+      "expiration": "2026-06-23",
+      "open_interest": 16,
+      "volume": 4,
+      "gamma": 0.0009270733,
+      "implied_volatility": 0.1731
+    }
+  ]
+}

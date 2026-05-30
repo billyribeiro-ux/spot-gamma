@@ -1,0 +1,91 @@
+"""Turn a chain snapshot into finished dealer-facing gamma levels.
+
+This is the single orchestration point that the CLI and API call. Every level
+here is defined explicitly in docs/METHODOLOGY.md so the numbers are auditable.
+"""
+from __future__ import annotations
+
+from typing import Optional
+
+from .gex import aggregate_by_expiry, aggregate_by_strike, contract_gex, net_gex
+from .models import ChainSnapshot, GammaLevels, StrikeGamma
+from .profile import find_zero_gamma, gamma_profile
+
+
+def _call_wall(strikes: list[StrikeGamma], spot: float) -> Optional[float]:
+    """Largest positive net-gamma strike at/above spot (resistance shelf).
+
+    Keyed on *net* GEX rather than raw call gamma so the near-ATM 0DTE gamma
+    spike (where call and put gamma cancel) doesn't masquerade as the wall.
+    """
+    above = [s for s in strikes if s.strike >= spot and s.net_gex > 0]
+    pool = above or [s for s in strikes if s.net_gex > 0]
+    return max(pool, key=lambda s: s.net_gex).strike if pool else None
+
+
+def _put_wall(strikes: list[StrikeGamma], spot: float) -> Optional[float]:
+    """Most negative net-gamma strike at/below spot (support shelf)."""
+    below = [s for s in strikes if s.strike <= spot and s.net_gex < 0]
+    pool = below or [s for s in strikes if s.net_gex < 0]
+    return min(pool, key=lambda s: s.net_gex).strike if pool else None
+
+
+def _volatility_trigger(strikes: list[StrikeGamma], spot: float, zero_gamma: Optional[float]) -> Optional[float]:
+    """Actionable strike-snapped gamma flip.
+
+    Traders act on a tradable level, so the Volatility Trigger is the listed
+    strike nearest the (continuous) Zero Gamma crossing — the price at which
+    dealer hedging flips from dampening to amplifying. Falls back to the
+    largest positive net-gamma strike when no flip exists in range.
+    """
+    if not strikes:
+        return None
+    if zero_gamma is not None:
+        return min(strikes, key=lambda s: abs(s.strike - zero_gamma)).strike
+    positive = [s for s in strikes if s.net_gex > 0]
+    return max(positive, key=lambda s: s.net_gex).strike if positive else None
+
+
+def compute_levels(
+    snap: ChainSnapshot,
+    top_n: int = 5,
+    profile_width: float = 0.15,
+    profile_steps: int = 121,
+) -> GammaLevels:
+    by_strike = aggregate_by_strike(snap)
+    by_expiry = aggregate_by_expiry(snap)
+    total_net = net_gex(snap)
+
+    profile = gamma_profile(snap, width=profile_width, steps=profile_steps)
+    zero_gamma = find_zero_gamma(profile, snap.spot)
+
+    positive_nodes = sorted([s for s in by_strike if s.net_gex > 0], key=lambda s: s.net_gex, reverse=True)
+    negative_nodes = sorted([s for s in by_strike if s.net_gex < 0], key=lambda s: s.net_gex)
+
+    # 0DTE concentration: share of total absolute gamma sitting in options that
+    # expire today.
+    total_abs = sum(abs(contract_gex(c, snap)) for c in snap.contracts) or 1.0
+    zero_dte_net = sum(
+        contract_gex(c, snap) for c in snap.contracts if (c.expiration - snap.timestamp.date()).days == 0
+    )
+    zero_dte_abs = sum(
+        abs(contract_gex(c, snap)) for c in snap.contracts if (c.expiration - snap.timestamp.date()).days == 0
+    )
+
+    return GammaLevels(
+        symbol=snap.symbol,
+        spot=snap.spot,
+        timestamp=snap.timestamp,
+        net_gex=total_net,
+        regime="positive" if total_net >= 0 else "negative",
+        zero_gamma=zero_gamma,
+        volatility_trigger=_volatility_trigger(by_strike, snap.spot, zero_gamma),
+        call_wall=_call_wall(by_strike, snap.spot),
+        put_wall=_put_wall(by_strike, snap.spot),
+        top_positive_nodes=positive_nodes[:top_n],
+        top_negative_nodes=negative_nodes[:top_n],
+        by_strike=by_strike,
+        by_expiry=by_expiry,
+        zero_dte_net_gex=zero_dte_net,
+        zero_dte_share=zero_dte_abs / total_abs,
+    )

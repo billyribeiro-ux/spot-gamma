@@ -1,0 +1,25 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+.pytest_cache/
+.venv/
+venv/
+
+# Node / SvelteKit
+node_modules/
+dashboard/.svelte-kit/
+dashboard/build/
+dashboard/.vite/
+
+# Engine output artifacts
+*.log
+levels.json
+
+# OS / editor
+.DS_Store
+.idea/
+.vscode/

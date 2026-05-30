@@ -1,0 +1,28 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "spotgamma"
+version = "0.1.0"
+description = "Institutional-grade spot-gamma engine: options chain -> dealer gamma levels."
+requires-python = ">=3.10"
+dependencies = [
+    "pydantic>=2.5",
+    "typer>=0.9",
+]
+
+[project.optional-dependencies]
+live = ["requests>=2.31"]
+api = ["fastapi>=0.110", "uvicorn[standard]>=0.27"]
+dev = ["pytest>=8.0"]
+
+[project.scripts]
+spotgamma = "spotgamma.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["spotgamma*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

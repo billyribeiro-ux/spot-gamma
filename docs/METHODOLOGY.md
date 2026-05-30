@@ -1,0 +1,134 @@
+# Spot Gamma Methodology
+
+This document is the **source of truth** for how the engine turns an options
+chain into dealer-facing gamma levels. Every number the dashboard or ThinkScript
+shows is defined here so the output is reproducible and auditable. It is the
+Phase 1 deliverable: methodology first, code second.
+
+> **Disclaimer.** Spot gamma is an *inference* from public open interest and
+> greeks under an assumption about dealer positioning. Nobody can observe true
+> dealer books from public data. The goal is consistent, repeatable estimation —
+> not certainty.
+
+---
+
+## 1. Dealer positioning assumption
+
+We assume **dealers are long calls and short puts** (the standard naive
+convention, a.k.a. the SqueezeMetrics convention). Consequently:
+
+- **Call gamma → positive** GEX contribution
+- **Put gamma → negative** GEX contribution
+
+This is an assumption, not an observation. It is the single most important
+modeling choice; all levels below inherit it. A future refinement could weight by
+a positioning model (e.g. customer-buys-puts skew), but the MVP keeps the
+transparent naive convention.
+
+Implemented in `engine/spotgamma/gex.py::contract_gex` (sign by option type).
+
+## 2. Contract-level dollar gamma exposure
+
+For each contract *i*:
+
+```
+GEX_i = gamma_i × OI_i × multiplier × spot² × 0.01
+```
+
+- `gamma_i` — per-share Black-Scholes gamma (from the data source, or computed).
+- `OI_i` — open interest (contracts outstanding).
+- `multiplier` — **100** for SPX, NDX, SPY, QQQ.
+- `spot²` — converts share gamma to dollar gamma notional.
+- `0.01` — expresses the result **per 1% move** in spot.
+
+Interpretation: the dollar notional of the underlying dealers must trade to stay
+delta-neutral for a 1% move. **+$1B net GEX** ≈ dealers buy/sell ~$1B per 1%.
+
+## 3. Snapshot vs. profile (why we need both)
+
+- **Snapshot** — use each contract's gamma at the *current* spot. Drives Net GEX,
+  the regime tag, walls, and per-strike/per-expiry aggregates. Uses source gamma
+  when available (`gex.py`).
+- **Profile** — recompute every contract's gamma via Black-Scholes across a grid
+  of hypothetical spot levels (default ±15%, 121 steps) and sum to a net-GEX
+  curve. Required to locate **Zero Gamma** honestly, because dealer gamma changes
+  as price moves. Implemented in `engine/spotgamma/profile.py`.
+
+Black-Scholes gamma (`engine/spotgamma/greeks.py`) is also the **fallback** when a
+source provides IV but not gamma. Gamma is identical for a call and put at the
+same strike/expiry/vol, so one function serves both.
+
+## 4. Level definitions
+
+All computed in `engine/spotgamma/levels.py`. Walls key on **net** GEX per strike
+(call + put) rather than raw call/put gamma, so the near-ATM 0DTE gamma spike —
+where call and put gamma cancel — does not masquerade as a wall.
+
+| Level | Definition |
+|---|---|
+| **Net GEX** | Sum of signed `GEX_i` across the chain. |
+| **Regime** | `positive` if Net GEX ≥ 0 (dealers long gamma, dampening, mean-reverting), else `negative` (short gamma, amplifying, trending). |
+| **Zero Gamma** | Spot level where the **profile** net-GEX curve crosses zero, linearly interpolated; the crossing nearest current spot. `None` if no flip in range. The gamma "flip". |
+| **Call Wall** | Strike with the largest **positive** net GEX at/above spot — resistance, where dealers sell into strength. |
+| **Put Wall** | Strike with the largest **negative** net GEX at/below spot — support, where dealers buy weakness. |
+| **Volatility Trigger** | The listed **strike nearest Zero Gamma** — the actionable, tradable version of the flip. Distinct from Zero Gamma (continuous) by being strike-snapped. |
+| **Top positive/negative nodes** | Strikes ranked by net GEX, the biggest long- and short-gamma concentrations. |
+| **By expiry** | Net GEX summed per expiration. |
+| **0DTE concentration** | Share of total `|GEX|` sitting in options expiring today, plus 0DTE net GEX. |
+
+> **Note on Volatility Trigger.** SpotGamma's Volatility Trigger™ is proprietary
+> and not identical to this. We define a transparent proxy (strike-snapped flip).
+> Treated as a documented approximation, to be refined during Phase 3 validation.
+
+## 5. Symbol nuances
+
+| Symbol | Type | Settlement | Notes |
+|---|---|---|---|
+| **SPX** | Index | Cash, AM (monthly) / PM (weeklies, 0DTE) | Canonical reference. Largest notional. |
+| **NDX** | Index | Cash | Nasdaq-100; ~3.5× SPX price, coarse strikes. |
+| **SPY** | ETF | Physical | ~1/10 SPX. Finer strikes, retail noise, more 0DTE. |
+| **QQQ** | ETF | Physical | Nasdaq-100 ETF; retail-heavy. |
+
+**Expiry handling.** All listed expirations are included in aggregate Net GEX,
+walls, and Zero Gamma. We additionally break out **0DTE** (expires today) because
+its gamma is large, fast-decaying, and concentrates near ATM, dominating intraday
+pinning. 0DTE is reported separately rather than excluded.
+
+**0DTE gamma floor.** True 0DTE ATM gamma approaches a spike near expiry. The
+engine floors time-to-expiry in profile/fallback BS to keep gamma finite and the
+aggregates numerically stable.
+
+## 6. Data sources
+
+The engine is vendor-neutral behind `ChainSource` (`engine/spotgamma/sources/`).
+A source normalizes any vendor's chain into a `ChainSnapshot`; gamma math never
+imports a vendor SDK.
+
+- **`sample`** (default) — JSON fixtures, fully offline. Powers tests, CLI, API,
+  dashboard with no key. Synthetic but structurally faithful; **not market data**.
+- **`tradier`** — live; Tradier's chain endpoint returns `greeks.gamma`,
+  `greeks.mid_iv`, and `open_interest` via ORATS. Set `TRADIER_TOKEN`.
+- **Future** — ORATS direct (smoothed intraday greeks) or Databento/OPRA (raw,
+  greeks computed locally via `greeks.py`).
+
+## 7. Validation protocol (Phase 3)
+
+Methodology is only trustworthy if calibrated against the field. For each symbol,
+on the same timestamp, record our Zero Gamma, Call Wall, Put Wall, and regime vs:
+
+- **SpotGamma**, **GammaEdge**, **MenthorQ**.
+
+Expectations:
+- **Walls** should land on the same major strikes (exact match common).
+- **Zero Gamma / flip** within a small band; method differences (vendor
+  positioning models, OI vs. dealer-adjusted) explain residual divergence.
+- **Regime sign** should agree the large majority of the time.
+
+Persistent large divergence is a signal to revisit the positioning assumption
+(§1) or the Volatility Trigger proxy (§4), **not** to silently tune to match.
+
+## 8. Out of scope (MVP)
+
+The broader Market-Structure system (VIX, bond yields, DXY, breadth, seasonality,
+economic-calendar risk) is intentionally excluded here. The engine/API are
+structured so these become additional panels/endpoints later.
