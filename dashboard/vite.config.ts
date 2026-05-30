@@ -19,7 +19,7 @@ export default defineConfig({
 				rewrite: (path) => path.replace(/^\/api/, ''),
 				configure: (proxy) => {
 					if (!ADMIN_TOKEN) return;
-					proxy.on('proxyReq', (proxyReq) => {
+					proxy.on('proxyReq', (proxyReq: import('node:http').ClientRequest) => {
 						proxyReq.setHeader('X-Admin-Token', ADMIN_TOKEN);
 					});
 				}
