@@ -1,10 +1,13 @@
 <script lang="ts">
+	import { goto } from '$app/navigation';
 	import { fly } from 'svelte/transition';
 	import { expoOut } from 'svelte/easing';
 	import { fetchLevels, formatGex } from '$lib/api';
-	import { SYMBOLS, type GammaLevels, type Symbol } from '$lib/types';
+	import { SYMBOLS, TIMEFRAMES, type GammaLevels, type Symbol, type Timeframe } from '$lib/types';
 	import { motionOK, stagger } from '$lib/motion';
+	import { theme } from '$lib/theme.svelte';
 	import AnimatedNumber from '$lib/AnimatedNumber.svelte';
+	import CommandPalette, { type Command } from '$lib/CommandPalette.svelte';
 	import RegimeBanner from '$lib/panels/RegimeBanner.svelte';
 	import KeyLevels from '$lib/panels/KeyLevels.svelte';
 	import PriceChart from '$lib/panels/PriceChart.svelte';
@@ -17,14 +20,44 @@
 	const REFRESH_MS = 30_000;
 
 	let symbol = $state<Symbol>('SPX');
+	let timeframe = $state<Timeframe>('5m');
 	let levels = $state<GammaLevels | null>(null);
 	let error = $state<string | null>(null);
 	let loading = $state(false);
 	let updatedAt = $state<string>('');
+	let cmdkOpen = $state(false);
 
 	const activeIndex = $derived(SYMBOLS.indexOf(symbol));
 	const D = motionOK() ? 1 : 0;
 	const enter = (i: number) => ({ y: 14, opacity: 0, duration: 460 * D, delay: stagger(i) * D, easing: expoOut });
+
+	// Command palette (⌘K): symbols, timeframes, theme, navigation.
+	const commands = $derived<Command[]>([
+		...SYMBOLS.map((s) => ({
+			id: `sym-${s}`,
+			label: `View ${s}`,
+			group: 'Symbols',
+			hint: s === symbol ? 'current' : '',
+			keywords: 'symbol ticker',
+			run: () => (symbol = s)
+		})),
+		...TIMEFRAMES.map((tf) => ({
+			id: `tf-${tf}`,
+			label: `Timeframe ${tf}`,
+			group: 'Timeframe',
+			hint: tf === timeframe ? 'current' : '',
+			keywords: 'interval chart',
+			run: () => (timeframe = tf)
+		})),
+		{
+			id: 'theme',
+			label: theme.current === 'dark' ? 'Switch to light theme' : 'Switch to dark theme',
+			group: 'Appearance',
+			keywords: 'dark light mode color',
+			run: () => theme.toggle()
+		},
+		{ id: 'nav-conn', label: 'Open Connections', group: 'Navigate', keywords: 'sources api admin', run: () => goto('/admin') }
+	]);
 
 	async function load(sym: Symbol) {
 		loading = true;
@@ -66,9 +99,21 @@
 	<div class="status">
 		<span class="live" class:on={!error}><i></i>{error ? 'OFFLINE' : 'LIVE'}</span>
 		{#if updatedAt}<span class="updated mono">{updatedAt}</span>{/if}
+		<button class="icon-btn" onclick={() => theme.toggle()} aria-label="Toggle theme" title="Toggle theme">
+			{#if theme.current === 'dark'}
+				<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.5" /><g class="rays"><line x1="12" y1="2" x2="12" y2="5" /><line x1="12" y1="19" x2="12" y2="22" /><line x1="2" y1="12" x2="5" y2="12" /><line x1="19" y1="12" x2="22" y2="12" /><line x1="4.9" y1="4.9" x2="7" y2="7" /><line x1="17" y1="17" x2="19.1" y2="19.1" /><line x1="4.9" y1="19.1" x2="7" y2="17" /><line x1="17" y1="7" x2="19.1" y2="4.9" /></g></svg>
+			{:else}
+				<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z" /></svg>
+			{/if}
+		</button>
+		<button class="cmdk" onclick={() => (cmdkOpen = true)} aria-label="Open command palette">
+			<span class="mono">⌘K</span>
+		</button>
 		<a class="conn" href="/admin">Connections</a>
 	</div>
 </header>
+
+<CommandPalette bind:open={cmdkOpen} {commands} />
 
 <main>
 	{#if error}
@@ -90,6 +135,7 @@
 				<span class="sym">{levels.symbol}</span>
 				<AnimatedNumber
 					class="px mono"
+					flash
 					value={levels.spot}
 					format={(n) => n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
 				/>
@@ -105,7 +151,7 @@
 
 		<div in:fly={enter(1)}><RegimeBanner {levels} /></div>
 		<div class="grid">
-			<div class="wide" in:fly={enter(2)}><PriceChart {symbol} {levels} /></div>
+			<div class="wide" in:fly={enter(2)}><PriceChart {symbol} {levels} bind:timeframe /></div>
 			<div class="wide" in:fly={enter(3)}><GammaTerrain {levels} /></div>
 			<div class="wide" in:fly={enter(4)}><GammaByStrike {levels} /></div>
 			<div in:fly={enter(5)}><KeyLevels {levels} /></div>
@@ -248,6 +294,55 @@
 	.updated {
 		color: var(--text-lo);
 	}
+	.icon-btn {
+		display: grid;
+		place-items: center;
+		width: 30px;
+		height: 30px;
+		padding: 0;
+		color: var(--text-mid);
+		background: none;
+		border: 1px solid var(--border);
+		border-radius: var(--r-pill);
+		cursor: pointer;
+		transition:
+			color var(--dur-1),
+			border-color var(--dur-1),
+			background var(--dur-1);
+	}
+	.icon-btn svg {
+		width: 16px;
+		height: 16px;
+		fill: none;
+		stroke: currentColor;
+		stroke-width: 2;
+		stroke-linecap: round;
+	}
+	.icon-btn:hover {
+		color: var(--text-hi);
+		border-color: var(--border-strong);
+		background: var(--surface-2);
+	}
+	.cmdk {
+		display: inline-flex;
+		align-items: center;
+		color: var(--text-lo);
+		background: var(--surface-1);
+		border: 1px solid var(--border);
+		border-radius: var(--r-sm);
+		padding: 0.25rem 0.5rem;
+		font-size: 0.7rem;
+		cursor: pointer;
+		transition:
+			color var(--dur-1),
+			border-color var(--dur-1),
+			background var(--dur-1);
+	}
+	.cmdk:hover {
+		color: var(--text-hi);
+		border-color: var(--border-strong);
+		background: var(--surface-2);
+	}
 	.conn {
 		color: var(--text-mid);
 		text-decoration: none;
@@ -264,6 +359,11 @@
 		color: var(--text-hi);
 		border-color: var(--border-strong);
 		background: var(--surface-2);
+	}
+	.appbar,
+	.seg,
+	.seg button {
+		transition: var(--theme-tx);
 	}
 
 	main {

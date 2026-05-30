@@ -1,29 +1,46 @@
 <script lang="ts">
+	import AnimatedNumber from '$lib/AnimatedNumber.svelte';
 	import type { GammaLevels } from '$lib/types';
-	import { formatLevel } from '$lib/api';
 
 	let { levels }: { levels: GammaLevels } = $props();
 
-	// Order top-to-bottom by price so the layout reads like a chart axis.
+	// Colors match the price-chart overlays ($lib/levels) — Call Wall green,
+	// Put Wall red (this used to be inverted).
 	const rows = $derived(
 		[
-			{ label: 'Call Wall', value: levels.call_wall, color: '#ef4444' },
-			{ label: 'Spot', value: levels.spot, color: '#e5e7eb' },
-			{ label: 'Volatility Trigger', value: levels.volatility_trigger, color: '#22d3ee' },
-			{ label: 'Zero Gamma', value: levels.zero_gamma, color: '#eab308' },
-			{ label: 'Put Wall', value: levels.put_wall, color: '#22c55e' }
-		].sort((a, b) => (b.value ?? -Infinity) - (a.value ?? -Infinity))
+			{ label: 'Call Wall', value: levels.call_wall, color: 'var(--lvl-call)' },
+			{ label: 'Hedge Wall', value: levels.hedge_wall, color: 'var(--lvl-hedge)' },
+			{ label: 'Spot', value: levels.spot, color: 'var(--lvl-spot)' },
+			{ label: 'Vol Trigger', value: levels.volatility_trigger, color: 'var(--lvl-vol)' },
+			{ label: 'Gamma Flip', value: levels.zero_gamma, color: 'var(--lvl-flip)' },
+			{ label: 'Abs Gamma', value: levels.absolute_gamma, color: 'var(--lvl-abs)' },
+			{ label: 'Put Wall', value: levels.put_wall, color: 'var(--lvl-put)' }
+		]
+			.filter((r) => r.value != null)
+			.sort((a, b) => (b.value ?? -Infinity) - (a.value ?? -Infinity))
 	);
+
+	const dist = (v: number | null) => (v == null ? null : ((v - levels.spot) / levels.spot) * 100);
 </script>
 
-<div class="card">
+<div class="panel card">
 	<h2>Key Levels</h2>
 	<ul>
 		{#each rows as row (row.label)}
-			<li>
-				<span class="dot" style:background={row.color}></span>
+			{@const d = dist(row.value)}
+			<li class:is-spot={row.label === 'Spot'} style:--c={row.color}>
+				<span class="dot"></span>
 				<span class="label">{row.label}</span>
-				<span class="value" class:spot={row.label === 'Spot'}>{formatLevel(row.value)}</span>
+				{#if row.label !== 'Spot' && d != null}
+					<span class="dist" class:up={d >= 0} class:down={d < 0}>
+						{d >= 0 ? '▲' : '▼'}{Math.abs(d).toFixed(2)}%
+					</span>
+				{/if}
+				<AnimatedNumber
+					class="value"
+					value={row.value ?? 0}
+					format={(n) => n.toLocaleString('en-US', { maximumFractionDigits: 2 })}
+				/>
 			</li>
 		{/each}
 	</ul>
@@ -31,17 +48,15 @@
 
 <style>
 	.card {
-		background: #111827;
-		border: 1px solid #1f2937;
-		border-radius: 12px;
-		padding: 1rem 1.25rem;
+		padding: 1rem 1.2rem;
 	}
 	h2 {
-		margin: 0 0 0.75rem;
-		font-size: 0.8rem;
+		margin: 0 0 0.6rem;
+		font-size: 0.72rem;
 		text-transform: uppercase;
-		letter-spacing: 0.08em;
-		color: #9ca3af;
+		letter-spacing: 0.1em;
+		color: var(--text-lo);
+		font-weight: 700;
 	}
 	ul {
 		list-style: none;
@@ -50,33 +65,56 @@
 	}
 	li {
 		display: grid;
-		grid-template-columns: 14px 1fr auto;
+		grid-template-columns: 10px 1fr auto auto;
 		align-items: center;
 		gap: 0.6rem;
-		padding: 0.4rem 0;
-		border-bottom: 1px solid #1f2937;
+		padding: 0.45rem 0.5rem;
+		margin: 0 -0.5rem;
+		border-radius: var(--r-sm);
+		border-bottom: 1px solid var(--border);
+		transition: background var(--dur-1);
 	}
 	li:last-child {
 		border-bottom: none;
 	}
+	li:hover {
+		background: var(--surface-2);
+	}
 	.dot {
-		width: 10px;
-		height: 10px;
+		width: 9px;
+		height: 9px;
 		border-radius: 50%;
+		background: var(--c);
+		box-shadow: 0 0 8px color-mix(in oklab, var(--c) 60%, transparent);
 	}
 	.label {
-		color: #d1d5db;
-		font-size: 0.95rem;
+		color: var(--text-mid);
+		font-size: 0.92rem;
 	}
-	.value {
+	.dist {
+		font-size: 0.7rem;
 		font-variant-numeric: tabular-nums;
-		font-weight: 600;
-		color: #f3f4f6;
+		color: var(--text-lo);
 	}
-	.value.spot {
-		color: #fff;
-		background: #1f2937;
-		padding: 0.1rem 0.5rem;
-		border-radius: 6px;
+	.dist.up {
+		color: var(--up);
+	}
+	.dist.down {
+		color: var(--down);
+	}
+	:global(.value) {
+		font-weight: 700;
+		color: var(--text-hi);
+		font-size: 0.98rem;
+	}
+	.is-spot {
+		background: var(--surface-2);
+	}
+	.is-spot .label {
+		color: var(--text-hi);
+		font-weight: 700;
+	}
+	.is-spot :global(.value) {
+		color: var(--text-hi);
 	}
 </style>

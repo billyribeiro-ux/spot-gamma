@@ -66,7 +66,65 @@
 	--dur-3: 420ms;
 	--dur-4: 640ms;
 
+	/* backdrop layers (overridden in light) */
+	--backdrop-a: rgba(91, 140, 255, 0.07);
+	--backdrop-b: rgba(46, 211, 144, 0.04);
+	--scrollbar-hover: #2a3344;
+	--grid-line: rgba(255, 255, 255, 0.04);
+
 	color-scheme: dark;
+}
+
+/* ── Light theme ──────────────────────────────────────────────────────────
+   A bright "institutional desk" palette — cool paper-white surfaces, slate
+   text, and slightly deepened up/down so green/red stay legible on white. */
+:root[data-theme='light'] {
+	--bg-0: #eef1f6;
+	--bg-1: #f6f8fb;
+	--surface-1: #ffffff;
+	--surface-2: #f1f4f9;
+	--surface-3: #e6ebf2;
+
+	--border: rgba(15, 23, 42, 0.1);
+	--border-strong: rgba(15, 23, 42, 0.18);
+
+	--text-hi: #0b1220;
+	--text-mid: #475067;
+	--text-lo: #7a8499;
+	--text-faint: #9aa3b566;
+
+	--up: #07875a;
+	--up-dim: rgba(7, 135, 90, 0.12);
+	--down: #d8324b;
+	--down-dim: rgba(216, 50, 75, 0.12);
+	--accent: #2f6bff;
+	--accent-dim: rgba(47, 107, 255, 0.12);
+	--gold: #b8860b;
+
+	--lvl-spot: #0b1220;
+	--lvl-call: #07875a;
+	--lvl-put: #d8324b;
+	--lvl-flip: #c77a14;
+	--lvl-vol: #7c3aed;
+	--lvl-abs: #0e8fad;
+	--lvl-hedge: #d2691e;
+
+	--shadow-1: 0 1px 2px rgba(15, 23, 42, 0.08);
+	--shadow-2: 0 8px 28px -10px rgba(15, 23, 42, 0.22);
+
+	--backdrop-a: rgba(47, 107, 255, 0.06);
+	--backdrop-b: rgba(7, 135, 90, 0.04);
+	--scrollbar-hover: #c4cdda;
+	--grid-line: rgba(15, 23, 42, 0.06);
+
+	color-scheme: light;
+}
+
+:root {
+	/* theme transitions feel deliberate, not jarring */
+	--theme-tx:
+		background-color var(--dur-2) var(--ease-in-out), border-color var(--dur-2) var(--ease-in-out),
+		color var(--dur-2) var(--ease-in-out);
 }
 
 * {
@@ -81,8 +139,8 @@ body {
 
 body {
 	background:
-		radial-gradient(1200px 600px at 75% -10%, rgba(91, 140, 255, 0.07), transparent 60%),
-		radial-gradient(900px 500px at 10% 0%, rgba(46, 211, 144, 0.04), transparent 55%),
+		radial-gradient(1200px 600px at 75% -10%, var(--backdrop-a), transparent 60%),
+		radial-gradient(900px 500px at 10% 0%, var(--backdrop-b), transparent 55%),
 		var(--bg-0);
 	color: var(--text-hi);
 	font-family: var(--font-ui);
@@ -90,6 +148,7 @@ body {
 	-webkit-font-smoothing: antialiased;
 	text-rendering: optimizeLegibility;
 	min-height: 100vh;
+	transition: var(--theme-tx);
 }
 
 /* numbers everywhere read as aligned, tabular figures */
@@ -124,7 +183,7 @@ body {
 	background-clip: content-box;
 }
 *::-webkit-scrollbar-thumb:hover {
-	background: #2a3344;
+	background: var(--scrollbar-hover);
 	background-clip: content-box;
 }
 
@@ -140,6 +199,33 @@ body {
 	border: 1px solid var(--border);
 	border-radius: var(--r-md);
 	box-shadow: var(--shadow-1);
+	transition: var(--theme-tx);
+}
+
+/* tick flash — a brief tint pulse on a value when it ticks up/down */
+@keyframes tick-up {
+	0% {
+		color: var(--up);
+		text-shadow: 0 0 12px var(--up-dim);
+	}
+	100% {
+		text-shadow: none;
+	}
+}
+@keyframes tick-down {
+	0% {
+		color: var(--down);
+		text-shadow: 0 0 12px var(--down-dim);
+	}
+	100% {
+		text-shadow: none;
+	}
+}
+.flash-up {
+	animation: tick-up var(--dur-4) var(--ease-out);
+}
+.flash-down {
+	animation: tick-down var(--dur-4) var(--ease-out);
 }
 
 @media (prefers-reduced-motion: reduce) {

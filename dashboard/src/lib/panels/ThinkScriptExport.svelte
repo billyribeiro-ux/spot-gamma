@@ -39,8 +39,8 @@
 
 <style>
 	.card {
-		background: #111827;
-		border: 1px solid #1f2937;
+		background: linear-gradient(180deg, var(--surface-1), var(--bg-1));
+		border: 1px solid var(--border);
 		border-radius: 12px;
 		padding: 1rem 1.25rem;
 	}
@@ -55,7 +55,7 @@
 		font-size: 0.8rem;
 		text-transform: uppercase;
 		letter-spacing: 0.08em;
-		color: #9ca3af;
+		color: var(--text-lo);
 	}
 	button {
 		background: #2563eb;
@@ -71,7 +71,7 @@
 	}
 	pre {
 		margin: 0;
-		background: #0b0f17;
+		background: var(--bg-0);
 		border-radius: 8px;
 		padding: 0.75rem;
 		font-size: 0.75rem;

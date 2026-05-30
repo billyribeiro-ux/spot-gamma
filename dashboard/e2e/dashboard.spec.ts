@@ -41,4 +41,29 @@ test.describe('dashboard', () => {
 		await expect(page.locator('.card', { hasText: 'Cboe' })).toBeVisible({ timeout: 20_000 });
 		await expect(page.locator('.card')).toHaveCount(7);
 	});
+
+	test('command palette opens, filters, and drives the symbol', async ({ page }) => {
+		await page.goto('/');
+		await expect(page.locator('.spot-line')).toContainText('SPX', { timeout: 20_000 });
+		await page.keyboard.press('ControlOrMeta+k');
+		const palette = page.getByRole('dialog', { name: 'Command palette' });
+		await expect(palette).toBeVisible();
+		await page.keyboard.type('NDX');
+		await page.getByRole('option', { name: /View NDX/ }).click();
+		await expect(palette).toBeHidden();
+		await expect(page.locator('.spot-line')).toContainText('NDX', { timeout: 20_000 });
+	});
+
+	test('theme toggle switches to light and persists', async ({ page }) => {
+		await page.goto('/');
+		await expect(page.locator('.spot-line')).toBeVisible({ timeout: 20_000 });
+		const root = page.locator('html');
+		const start = await root.getAttribute('data-theme');
+		await page.getByRole('button', { name: 'Toggle theme' }).click();
+		await expect(root).not.toHaveAttribute('data-theme', start ?? 'dark');
+		// persists across reload
+		const after = await root.getAttribute('data-theme');
+		await page.reload();
+		await expect(root).toHaveAttribute('data-theme', after ?? 'light');
+	});
 });

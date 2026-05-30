@@ -1,6 +1,7 @@
 <script lang="ts">
-	import type { GammaLevels } from '$lib/types';
 	import { formatGex } from '$lib/api';
+	import AnimatedNumber from '$lib/AnimatedNumber.svelte';
+	import type { GammaLevels } from '$lib/types';
 
 	let { levels }: { levels: GammaLevels } = $props();
 
@@ -8,68 +9,109 @@
 	const blurb = $derived(
 		positive
 			? 'Dealers long gamma — hedging dampens moves (sell rallies, buy dips). Mean-reverting tape.'
-			: 'Dealers short gamma — hedging amplifies moves (buy rallies, sell dips). Trending / unstable tape.'
+			: 'Dealers short gamma — hedging amplifies moves (buy rallies, sell dips). Trending, unstable tape.'
 	);
 </script>
 
 <div class="banner" class:pos={positive} class:neg={!positive}>
+	<div class="glow" aria-hidden="true"></div>
 	<div class="left">
-		<div class="tag">{positive ? 'POSITIVE GAMMA' : 'NEGATIVE GAMMA'}</div>
+		<div class="tag">
+			<span class="ind"></span>
+			{positive ? 'POSITIVE GAMMA' : 'NEGATIVE GAMMA'}
+		</div>
 		<div class="blurb">{blurb}</div>
 	</div>
 	<div class="right">
-		<div class="net">{formatGex(levels.net_gex)}</div>
-		<div class="net-label">Net GEX / 1%</div>
+		<AnimatedNumber class="net" value={levels.net_gex} format={formatGex} />
+		<div class="net-label">Net GEX / 1% move</div>
 	</div>
 </div>
 
 <style>
 	.banner {
+		position: relative;
+		overflow: hidden;
 		display: flex;
 		justify-content: space-between;
 		align-items: center;
 		gap: 1rem;
-		border-radius: 12px;
-		padding: 1rem 1.25rem;
-		border: 1px solid;
+		border-radius: var(--r-md);
+		padding: 1.05rem 1.3rem;
+		border: 1px solid var(--border);
+		background: linear-gradient(180deg, var(--surface-1), var(--bg-1));
+		transition: var(--theme-tx);
 	}
 	.pos {
-		background: rgba(34, 197, 94, 0.08);
-		border-color: rgba(34, 197, 94, 0.4);
+		border-color: color-mix(in oklab, var(--up) 38%, transparent);
 	}
 	.neg {
-		background: rgba(239, 68, 68, 0.08);
-		border-color: rgba(239, 68, 68, 0.4);
+		border-color: color-mix(in oklab, var(--down) 38%, transparent);
+	}
+	.glow {
+		position: absolute;
+		inset: 0;
+		pointer-events: none;
+	}
+	.pos .glow {
+		background: radial-gradient(420px 120px at 0% 50%, var(--up-dim), transparent 70%);
+	}
+	.neg .glow {
+		background: radial-gradient(420px 120px at 0% 50%, var(--down-dim), transparent 70%);
+	}
+	.left,
+	.right {
+		position: relative;
+		z-index: 1;
 	}
 	.tag {
-		font-weight: 700;
-		letter-spacing: 0.06em;
+		display: inline-flex;
+		align-items: center;
+		gap: 0.5rem;
+		font-weight: 800;
+		letter-spacing: 0.08em;
 		font-size: 0.9rem;
 	}
+	.ind {
+		width: 9px;
+		height: 9px;
+		border-radius: 50%;
+	}
 	.pos .tag {
-		color: #4ade80;
+		color: var(--up);
+	}
+	.pos .ind {
+		background: var(--up);
+		box-shadow: 0 0 12px var(--up);
 	}
 	.neg .tag {
-		color: #f87171;
+		color: var(--down);
+	}
+	.neg .ind {
+		background: var(--down);
+		box-shadow: 0 0 12px var(--down);
 	}
 	.blurb {
-		color: #9ca3af;
+		color: var(--text-mid);
 		font-size: 0.85rem;
-		margin-top: 0.25rem;
-		max-width: 48ch;
+		margin-top: 0.35rem;
+		max-width: 52ch;
+		line-height: 1.4;
 	}
-	.net {
-		font-size: 1.6rem;
-		font-weight: 700;
-		font-variant-numeric: tabular-nums;
+	.right {
 		text-align: right;
-		color: #f3f4f6;
+	}
+	:global(.net) {
+		font-size: 1.7rem;
+		font-weight: 700;
+		letter-spacing: -0.01em;
+		color: var(--text-hi);
 	}
 	.net-label {
-		font-size: 0.7rem;
-		color: #6b7280;
-		text-align: right;
+		font-size: 0.68rem;
+		color: var(--text-lo);
 		text-transform: uppercase;
-		letter-spacing: 0.06em;
+		letter-spacing: 0.08em;
+		margin-top: 0.15rem;
 	}
 </style>

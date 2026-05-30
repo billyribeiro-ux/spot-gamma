@@ -15,6 +15,7 @@
 		type UTCTimestamp
 	} from 'lightweight-charts';
 	import { fetchHistory, formatGex } from '$lib/api';
+	import { theme } from '$lib/theme.svelte';
 	import { TIMEFRAMES, type GammaLevels, type Symbol, type Timeframe } from '$lib/types';
 	import GexProfile from './GexProfile.svelte';
 	import {
@@ -26,13 +27,16 @@
 		type Visibility
 	} from '$lib/levels';
 
-	let { symbol, levels }: { symbol: Symbol; levels: GammaLevels } = $props();
+	// `timeframe` is bindable so the command palette (⌘K) can drive it too.
+	let {
+		symbol,
+		levels,
+		timeframe = $bindable<Timeframe>('5m')
+	}: { symbol: Symbol; levels: GammaLevels; timeframe?: Timeframe } = $props();
 
 	const REFRESH_MS = 30_000;
 	const INTRADAY = new Set<Timeframe>(['1m', '5m', '15m', '30m', '1h']);
 	const CHART_H = 360;
-
-	let timeframe = $state<Timeframe>('5m');
 	let container: HTMLDivElement;
 	let error = $state<string | null>(null);
 	let lastClose = $state<number | null>(null);
@@ -159,6 +163,7 @@
 			}
 		});
 		ready = true;
+		applyTheme();
 		const id = setInterval(load, REFRESH_MS);
 		return () => {
 			clearInterval(id);
@@ -168,11 +173,32 @@
 		};
 	});
 
+	// Restyle the chart chrome (axes, grid, text) to the active theme tokens.
+	function applyTheme() {
+		if (!chart) return;
+		const css = getComputedStyle(document.documentElement);
+		const v = (n: string) => css.getPropertyValue(n).trim();
+		const line = v('--grid-line') || 'rgba(255,255,255,0.04)';
+		const border = v('--border-strong');
+		chart.applyOptions({
+			layout: { textColor: v('--text-mid') },
+			grid: { vertLines: { color: line }, horzLines: { color: line } },
+			rightPriceScale: { borderColor: border },
+			timeScale: { borderColor: border }
+		});
+	}
+
 	// Reload on symbol/timeframe change (and once the chart is ready).
 	$effect(() => {
 		void symbol;
 		void timeframe;
 		if (ready) load();
+	});
+
+	// Keep chart chrome in sync with the theme.
+	$effect(() => {
+		void theme.current;
+		if (ready) applyTheme();
 	});
 
 	// Redraw level overlays + refresh the shared price domain whenever the levels
@@ -235,8 +261,8 @@
 
 <style>
 	.panel {
-		background: #111827;
-		border: 1px solid #1f2937;
+		background: linear-gradient(180deg, var(--surface-1), var(--bg-1));
+		border: 1px solid var(--border);
 		border-radius: 12px;
 		padding: 0.9rem 1rem 0.5rem;
 	}
@@ -256,12 +282,12 @@
 	h2 {
 		margin: 0;
 		font-size: 0.95rem;
-		color: #e5e7eb;
+		color: var(--text-hi);
 	}
 	.last {
 		font-variant-numeric: tabular-nums;
 		font-weight: 700;
-		color: #f3f4f6;
+		color: var(--text-hi);
 	}
 	.gex {
 		font-size: 0.72rem;
@@ -285,9 +311,9 @@
 		gap: 0.2rem;
 	}
 	.tfs button {
-		background: #0b0f17;
-		color: #9ca3af;
-		border: 1px solid #1f2937;
+		background: var(--bg-0);
+		color: var(--text-mid);
+		border: 1px solid var(--border);
 		border-radius: 6px;
 		padding: 0.2rem 0.55rem;
 		font-size: 0.75rem;
@@ -309,13 +335,13 @@
 		display: inline-flex;
 		align-items: center;
 		gap: 0.3rem;
-		background: #0b0f17;
-		border: 1px solid #1f2937;
+		background: var(--bg-0);
+		border: 1px solid var(--border);
 		border-radius: 6px;
 		padding: 0.15rem 0.45rem;
 		font-size: 0.7rem;
 		font-weight: 600;
-		color: #6b7280;
+		color: var(--text-lo);
 		cursor: pointer;
 	}
 	.chip .sw {
@@ -325,8 +351,8 @@
 		opacity: 0.35;
 	}
 	.chip.on {
-		color: #e5e7eb;
-		border-color: #374151;
+		color: var(--text-hi);
+		border-color: var(--border-strong);
 	}
 	.chip.on .sw {
 		opacity: 1;
