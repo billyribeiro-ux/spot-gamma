@@ -29,6 +29,7 @@ from fastapi import APIRouter, Depends, FastAPI, Header, HTTPException, Query, s
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
+from spotgamma.history import TIMEFRAMES, fetch_history
 from spotgamma.levels import compute_levels
 from spotgamma.models import GammaLevels
 from spotgamma.sources.specs import SOURCE_SPECS, build_source
@@ -58,6 +59,10 @@ app.add_middleware(
 )
 
 _cache: dict[tuple[str, str], tuple[float, GammaLevels]] = {}
+# Price history is fetched far more often (per timeframe switch) and changes
+# slowly; give it its own short cache so timeframe toggling stays snappy.
+_history_cache: dict[tuple[str, str], tuple[float, dict]] = {}
+HISTORY_TTL = float(os.environ.get("SPOTGAMMA_HISTORY_TTL", "20"))
 
 
 def _resolved_source(requested: Optional[str]) -> str:
@@ -85,12 +90,33 @@ def _get_levels(symbol: str, source: str) -> GammaLevels:
 # --- Levels API -----------------------------------------------------------
 @app.get("/health")
 def health() -> dict:
-    return {"status": "ok", "active_source": _resolved_source(None), "symbols": SYMBOLS}
+    return {
+        "status": "ok",
+        "active_source": _resolved_source(None),
+        "symbols": SYMBOLS,
+        "timeframes": list(TIMEFRAMES),
+    }
 
 
 @app.get("/levels/{symbol}", response_model=GammaLevels)
 def levels(symbol: str, source: Optional[str] = Query(default=None)) -> GammaLevels:
     return _get_levels(symbol, _resolved_source(source))
+
+
+@app.get("/history/{symbol}")
+def history(symbol: str, tf: str = Query(default="5m")) -> dict:
+    """OHLC bars for the trading chart (free Yahoo source, multi-timeframe)."""
+    key = (symbol.upper(), tf)
+    now = time.time()
+    hit = _history_cache.get(key)
+    if hit and now - hit[0] < HISTORY_TTL:
+        return hit[1]
+    try:
+        data = fetch_history(symbol, tf)
+    except Exception as e:  # network/parse error -> 502
+        raise HTTPException(status_code=502, detail=f"history error: {e}") from e
+    _history_cache[key] = (now, data)
+    return data
 
 
 # --- Connections hub ------------------------------------------------------
