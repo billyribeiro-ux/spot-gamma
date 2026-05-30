@@ -9,8 +9,14 @@ from __future__ import annotations
 
 from typing import NamedTuple, Optional
 
-from .gex import net_gex
-from .models import ChainSnapshot
+from .greeks import bs_gamma_array
+from .models import ChainSnapshot, OptionType
+
+# Below this contract count the pure-Python path is plenty fast and avoids the
+# numpy import; above it we vectorize (real index chains are tens of thousands).
+_VECTORIZE_THRESHOLD = 2000
+
+_FALLBACK_IV = 0.20
 
 
 class ProfilePoint(NamedTuple):
@@ -23,10 +29,36 @@ def gamma_profile(
     width: float = 0.15,
     steps: int = 121,
 ) -> list[ProfilePoint]:
-    """Net GEX evaluated across spot in ``[spot*(1-width), spot*(1+width)]``."""
+    """Net GEX evaluated across spot in ``[spot*(1-width), spot*(1+width)]``.
+
+    Contracts with zero open interest contribute exactly zero GEX, so they are
+    dropped up front — both a correctness-preserving speedup and what lets a
+    30k-contract chain profile in well under a second.
+    """
+    contracts = [c for c in snap.contracts if c.open_interest > 0]
     lo, hi = snap.spot * (1 - width), snap.spot * (1 + width)
-    step = (hi - lo) / (steps - 1)
-    return [ProfilePoint(s := lo + i * step, net_gex(snap, s)) for i in range(steps)]
+    spots = [lo + i * (hi - lo) / (steps - 1) for i in range(steps)]
+
+    if len(contracts) < _VECTORIZE_THRESHOLD:
+        from .gex import net_gex  # scalar path reuses the per-contract function
+
+        return [ProfilePoint(s, net_gex(snap, s)) for s in spots]
+
+    import numpy as np
+
+    mult = snap.multiplier
+    strike = np.array([c.strike for c in contracts])
+    t_years = np.array([snap.dte(c.expiration) for c in contracts])
+    iv = np.array([c.implied_volatility or _FALLBACK_IV for c in contracts])
+    # signed open interest folds the dealer call(+)/put(-) convention into one weight
+    signed_oi = np.array([c.open_interest if c.option_type is OptionType.CALL else -c.open_interest for c in contracts])
+
+    points: list[ProfilePoint] = []
+    for s in spots:
+        gamma = bs_gamma_array(s, strike, t_years, iv, snap.risk_free_rate)
+        net = float(np.sum(gamma * signed_oi) * mult * s * s * 0.01)
+        points.append(ProfilePoint(s, net))
+    return points
 
 
 def find_zero_gamma(profile: list[ProfilePoint], spot: float) -> Optional[float]:

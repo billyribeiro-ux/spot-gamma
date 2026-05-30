@@ -22,6 +22,28 @@ def _norm_pdf(x: float) -> float:
     return math.exp(-0.5 * x * x) / _SQRT_2PI
 
 
+def bs_gamma_array(spot, strike, t_years, iv, rate=0.04):
+    """Vectorized per-share gamma for one spot against arrays of contracts.
+
+    Mirrors :func:`bs_gamma` but operates on numpy arrays of strike/time/iv so
+    the net-GEX profile can evaluate ~tens of thousands of contracts per grid
+    step without a Python loop. Degenerate contracts (expired / zero vol) yield
+    0.0. Imported lazily so the scalar path stays numpy-free.
+    """
+    import numpy as np
+
+    strike = np.asarray(strike, dtype=float)
+    t_years = np.asarray(t_years, dtype=float)
+    iv = np.asarray(iv, dtype=float)
+    valid = (spot > 0) & (strike > 0) & (t_years > 0) & (iv > 0)
+    safe_t = np.where(valid, t_years, 1.0)
+    safe_iv = np.where(valid, iv, 1.0)
+    sigma_sqrt_t = safe_iv * np.sqrt(safe_t)
+    d1 = (np.log(spot / np.where(valid, strike, 1.0)) + (rate + 0.5 * safe_iv ** 2) * safe_t) / sigma_sqrt_t
+    pdf = np.exp(-0.5 * d1 * d1) / _SQRT_2PI
+    return np.where(valid, pdf / (spot * sigma_sqrt_t), 0.0)
+
+
 def bs_gamma(
     spot: float,
     strike: float,

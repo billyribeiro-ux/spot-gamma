@@ -106,10 +106,13 @@ imports a vendor SDK.
 
 - **`sample`** (default) — JSON fixtures, fully offline. Powers tests, CLI, API,
   dashboard with no key. Synthetic but structurally faithful; **not market data**.
-- **`tradier`** — live; Tradier's chain endpoint returns `greeks.gamma`,
-  `greeks.mid_iv`, and `open_interest` via ORATS. Set `TRADIER_TOKEN`.
-- **Future** — ORATS direct (smoothed intraday greeks) or Databento/OPRA (raw,
-  greeks computed locally via `greeks.py`).
+- **`cboe`** — free, no key; Cboe delayed-quotes JSON with gamma/IV/OI incl. SPXW.
+- **`tradier` / `schwab`** — brokerage APIs, greeks+OI in one REST call.
+- **`polygon` / `thetadata`** — paid vendors, real-time OPRA-bundled greeks.
+- **`tastytrade`** — broker; greeks stream over DXLink (experimental).
+
+See [`DATA_SOURCES.md`](DATA_SOURCES.md) for the full comparison and the research
+behind these choices (and why Alpaca/Webull/yfinance were not shipped).
 
 ## 7. Validation protocol (Phase 3)
 

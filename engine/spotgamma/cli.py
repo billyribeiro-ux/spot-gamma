@@ -31,7 +31,7 @@ def _levels(symbol: str, source: str):
 @app.command()
 def levels(
     symbol: str = typer.Argument(..., help="Underlying, e.g. SPX, NDX, SPY, QQQ."),
-    source: str = typer.Option("sample", help="Chain source: sample | tradier."),
+    source: str = typer.Option("sample", help="Chain source: sample|cboe|tradier|schwab|polygon|thetadata|tastytrade."),
     out: Optional[Path] = typer.Option(None, help="Write levels JSON here (else stdout)."),
 ) -> None:
     """Compute and print/save gamma levels for a symbol."""
@@ -47,7 +47,7 @@ def levels(
 @app.command("export-thinkscript")
 def export_thinkscript(
     symbol: str = typer.Argument(..., help="Underlying, e.g. SPX."),
-    source: str = typer.Option("sample", help="Chain source: sample | tradier."),
+    source: str = typer.Option("sample", help="Chain source: sample|cboe|tradier|schwab|polygon|thetadata|tastytrade."),
     out: Optional[Path] = typer.Option(None, help="Output .ts path (default thinkscript/spot_gamma_<sym>.ts)."),
 ) -> None:
     """Render a Thinkorswim study with the computed levels as inputs."""

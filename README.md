@@ -28,9 +28,16 @@ key); live data is opt-in.
 ```bash
 cd engine
 pip install -e .
-pytest                                   # 19 tests
+pytest                                   # 26 tests
 spotgamma levels SPX --source sample     # print computed levels JSON
 spotgamma export-thinkscript SPX         # write thinkscript/spot_gamma_spx.ts
+```
+
+### 1b. Real data, free, no account
+
+```bash
+pip install -e "engine[live]"
+spotgamma levels SPX --source cboe        # live SPX (~15-min delayed) from Cboe
 ```
 
 ### 2. API
@@ -53,19 +60,33 @@ The dashboard polls the API every 30s and renders regime, key levels, the
 net-gamma-by-strike heatmap (call wall / put wall / vol trigger), per-expiry
 gamma, 0DTE concentration, and a copy-paste ThinkScript block.
 
-### Going live
+### Going live / wiring your account
+
+Multiple data sources are pluggable behind one `ChainSource` interface — pick the
+one matching the account you have. Full comparison and the research behind it:
+[`docs/DATA_SOURCES.md`](docs/DATA_SOURCES.md).
 
 ```bash
-export TRADIER_TOKEN=...                  # Tradier (greeks + OI via ORATS)
-spotgamma levels SPX --source tradier
-SPOTGAMMA_SOURCE=tradier uvicorn api.main:app --port 8000
+spotgamma levels SPX --source cboe        # free, no key (15-min delayed)
+
+export TRADIER_TOKEN=...                   # broker, greeks+OI (ORATS, EOD)
+export SCHWAB_ACCESS_TOKEN=...             # broker, native greeks (OAuth2)
+export POLYGON_API_KEY=...                 # vendor, real-time (paid)
+# thetadata: run Theta Terminal locally (THETADATA_URL, default :25510)
+# tastytrade: TASTYTRADE_USERNAME/_PASSWORD  (pip install -e "engine[stream]")
+
+spotgamma levels SPX --source schwab
+SPOTGAMMA_SOURCE=cboe uvicorn api.main:app --port 8000
 ```
+
+Sources: `sample`, `cboe`, `tradier`, `schwab`, `polygon`, `thetadata`, `tastytrade`.
 
 ## Layout
 
 | Path | What |
 |---|---|
 | `docs/METHODOLOGY.md` | Formulas, level definitions, dealer assumption, validation protocol. |
+| `docs/DATA_SOURCES.md` | Broker/vendor comparison + how to wire each adapter. |
 | `engine/spotgamma/` | Models, greeks, GEX, profile, levels, sources, CLI, ThinkScript export. |
 | `engine/tests/` | Unit tests + `fixtures/*_chain.json` sample chains. |
 | `engine/tools/make_fixtures.py` | Regenerate the sample chains. |

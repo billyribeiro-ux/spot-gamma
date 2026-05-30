@@ -21,16 +21,33 @@ class ChainSource(ABC):
         raise NotImplementedError
 
 
+# Registered sources. Lazy importers keep an unused adapter's optional deps
+# (requests, websockets) from blocking startup.
+def _load(module: str, cls: str):
+    def factory() -> ChainSource:
+        import importlib
+
+        return getattr(importlib.import_module(f".{module}", __package__), cls)()
+
+    return factory
+
+
+_SOURCES = {
+    "sample": _load("sample", "SampleSource"),
+    "cboe": _load("cboe", "CboeSource"),
+    "tradier": _load("tradier", "TradierSource"),
+    "schwab": _load("schwab", "SchwabSource"),
+    "polygon": _load("polygon", "PolygonSource"),
+    "thetadata": _load("thetadata", "ThetaDataSource"),
+    "tastytrade": _load("tastytrade", "TastytradeSource"),
+}
+
+SOURCE_NAMES = sorted(_SOURCES)
+
+
 def get_source(name: str) -> ChainSource:
-    """Factory: resolve a source by name. Imports are local so an unused
-    adapter's optional dependencies (e.g. ``requests``) never block startup."""
-    key = name.lower()
-    if key == "sample":
-        from .sample import SampleSource
-
-        return SampleSource()
-    if key == "tradier":
-        from .tradier import TradierSource
-
-        return TradierSource()
-    raise ValueError(f"unknown source: {name!r} (known: sample, tradier)")
+    """Factory: resolve a chain source by name."""
+    try:
+        return _SOURCES[name.lower()]()
+    except KeyError:
+        raise ValueError(f"unknown source: {name!r} (known: {', '.join(SOURCE_NAMES)})") from None
