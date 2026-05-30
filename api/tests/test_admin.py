@@ -99,3 +99,37 @@ def test_thinkscript_endpoint_renders_engine_study(client):
     body = r.text
     assert "input callWall" in body and "input hedgeWall" in body
     assert "AddCloud" in body and "AssignBackgroundColor" in body and "Alert(" in body
+
+
+def test_market_structure_endpoint(client, monkeypatch):
+    # Stub the external feeds so the test is network-free; sample source gives gamma.
+    from spotgamma.marketstructure import read as ms_read
+
+    class _Q:
+        def __init__(self, p):
+            self.price = p
+
+    quotes = {"^VIX": 15.3, "^VIX3M": 18.6, "^VVIX": 86.0, "DX-Y.NYB": 98.9}
+    series = {"BAMLH0A0HYM2": 2.72, "T10Y2Y": 0.47}
+
+    class _Pt:
+        def __init__(self, v):
+            self.value = v
+
+    monkeypatch.setattr(ms_read, "fetch_quote", lambda t: _Q(quotes[t]), raising=False)
+    # fetch_series/latest are imported inside build_market_structure; patch at source
+
+    def fake_series(sid):
+        return [_Pt(series[sid])]
+
+    monkeypatch.setattr("spotgamma.marketstructure.fred.fetch_series", fake_series)
+    monkeypatch.setattr("spotgamma.marketstructure.quotes.fetch_quote", lambda t: _Q(quotes[t]))
+
+    resp = client.get("/market-structure?symbol=SPX")
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["bias"] in {"risk-on", "neutral", "risk-off"}
+    assert body["vol_regime"] in {"calm", "normal", "stressed", "crisis"}
+    assert -1.5 <= body["regime_score"] <= 1.5
+    keys = {s["key"] for s in body["signals"]}
+    assert "vix" in keys and "credit" in keys  # core signals present

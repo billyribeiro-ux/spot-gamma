@@ -9,6 +9,7 @@
 	import AnimatedNumber from '$lib/AnimatedNumber.svelte';
 	import CommandPalette, { type Command } from '$lib/CommandPalette.svelte';
 	import RegimeBanner from '$lib/panels/RegimeBanner.svelte';
+	import MarketStructure from '$lib/panels/MarketStructure.svelte';
 	import KeyLevels from '$lib/panels/KeyLevels.svelte';
 	import PriceChart from '$lib/panels/PriceChart.svelte';
 	import GammaTerrain from '$lib/panels/GammaTerrain.svelte';
@@ -151,13 +152,14 @@
 
 		<div in:fly={enter(1)}><RegimeBanner {levels} /></div>
 		<div class="grid">
-			<div class="wide" in:fly={enter(2)}><PriceChart {symbol} {levels} bind:timeframe /></div>
-			<div class="wide" in:fly={enter(3)}><GammaTerrain {levels} /></div>
-			<div class="wide" in:fly={enter(4)}><GammaByStrike {levels} /></div>
-			<div in:fly={enter(5)}><KeyLevels {levels} /></div>
-			<div in:fly={enter(6)}><ZeroDTE {levels} /></div>
-			<div in:fly={enter(7)}><ExpiryTable {levels} /></div>
-			<div class="wide" in:fly={enter(8)}><ThinkScriptExport {symbol} {levels} /></div>
+			<div class="wide" in:fly={enter(2)}><MarketStructure {symbol} /></div>
+			<div class="wide" in:fly={enter(3)}><PriceChart {symbol} {levels} bind:timeframe /></div>
+			<div class="wide" in:fly={enter(4)}><GammaTerrain {levels} /></div>
+			<div class="wide" in:fly={enter(5)}><GammaByStrike {levels} /></div>
+			<div in:fly={enter(6)}><KeyLevels {levels} /></div>
+			<div in:fly={enter(7)}><ZeroDTE {levels} /></div>
+			<div in:fly={enter(8)}><ExpiryTable {levels} /></div>
+			<div class="wide" in:fly={enter(9)}><ThinkScriptExport {symbol} {levels} /></div>
 		</div>
 	{/if}
 </main>

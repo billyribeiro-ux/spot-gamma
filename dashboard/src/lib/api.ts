@@ -30,6 +30,36 @@ export async function fetchThinkScript(symbol: Symbol): Promise<string> {
 	return res.text();
 }
 
+export interface MSSignal {
+	key: string;
+	label: string;
+	value: number;
+	score: number;
+	bias: 'risk-on' | 'neutral' | 'risk-off';
+	detail: string;
+}
+
+export interface MarketStructure {
+	symbol: string;
+	regime_score: number;
+	roro_score: number;
+	gamma_modifier: number;
+	bias: 'risk-on' | 'neutral' | 'risk-off';
+	vol_regime: 'calm' | 'normal' | 'stressed' | 'crisis';
+	divergence: boolean;
+	flip_transition_risk: boolean;
+	signals: MSSignal[];
+	inputs: Record<string, number | null>;
+	unavailable: string[];
+}
+
+/** Composite market-structure regime read (vol + macro + dealer gamma). */
+export async function fetchMarketStructure(symbol: Symbol): Promise<MarketStructure> {
+	const res = await fetch(`${BASE}/market-structure?symbol=${symbol}`);
+	if (!res.ok) throw new Error(`API ${res.status} for ${symbol} market-structure`);
+	return res.json();
+}
+
 /** Format a large dollar gamma number compactly, e.g. 3.78e8 -> "$378M". */
 export function formatGex(value: number): string {
 	const abs = Math.abs(value);

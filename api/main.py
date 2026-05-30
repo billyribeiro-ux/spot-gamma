@@ -35,6 +35,7 @@ from pydantic import BaseModel
 from spotgamma.export_thinkscript import render_thinkscript
 from spotgamma.history import TIMEFRAMES, fetch_history
 from spotgamma.levels import compute_levels
+from spotgamma.marketstructure.read import build_market_structure
 from spotgamma.models import GammaLevels
 from spotgamma.sources.specs import SOURCE_SPECS, build_source
 
@@ -105,6 +106,10 @@ _cache: TTLCache[GammaLevels] = TTLCache(CACHE_TTL)
 # slowly; give it its own short cache so timeframe toggling stays snappy.
 HISTORY_TTL = float(os.environ.get("SPOTGAMMA_HISTORY_TTL", "20"))
 _history_cache: TTLCache[dict] = TTLCache(HISTORY_TTL)
+# Market-structure pulls several external feeds (Yahoo + FRED); cache longer
+# since macro/vol data moves slowly relative to the chain.
+MS_TTL = float(os.environ.get("SPOTGAMMA_MS_TTL", "120"))
+_ms_cache: TTLCache[dict] = TTLCache(MS_TTL)
 
 
 def _resolved_source(requested: str | None) -> str:
@@ -176,6 +181,46 @@ def history(symbol: str, tf: str = Query(default="5m")) -> dict:
 def thinkscript(symbol: str, source: str | None = Query(default=None)) -> str:
     """Engine-rendered Thinkorswim study (single source of truth with the CLI)."""
     return render_thinkscript(_get_levels(symbol, _resolved_source(source)))
+
+
+@app.get("/market-structure")
+def market_structure(symbol: str = Query(default="SPX"), source: str | None = Query(default=None)) -> dict:
+    """Composite market-structure regime read (vol + macro + dealer gamma).
+
+    Documented in docs/MARKET_STRUCTURE.md. Each external feed degrades gracefully
+    (an unavailable signal is omitted, not fatal). Cached MS_TTL seconds.
+    """
+    src = _resolved_source(source)
+    key = (symbol.upper(), src)
+    cached = _ms_cache.get(key)
+    if cached is not None:
+        return cached
+    levels = _get_levels(symbol, src)  # raises 404/502 with a clear message
+    try:
+        ms = build_market_structure(net_gex=levels.net_gex, spot=levels.spot, zero_gamma=levels.zero_gamma)
+    except Exception as e:  # the whole read failing is unexpected (feeds degrade individually)
+        log.warning("market-structure(%s) failed: %s", symbol, e)
+        raise HTTPException(status_code=502, detail=f"market-structure error: {e}") from e
+    read = ms.read
+    payload = {
+        "symbol": symbol.upper(),
+        "regime_score": round(read.regime_score, 3),
+        "roro_score": round(read.roro_score, 3),
+        "gamma_modifier": round(read.gamma_modifier, 3),
+        "bias": read.bias,
+        "vol_regime": read.vol_regime,
+        "divergence": read.divergence,
+        "flip_transition_risk": read.flip_transition_risk,
+        "signals": [
+            {"key": s.key, "label": s.label, "value": round(s.value, 4), "score": round(s.score, 3),
+             "bias": s.bias, "detail": s.detail}
+            for s in read.signals
+        ],
+        "inputs": ms.inputs,
+        "unavailable": ms.unavailable,
+    }
+    _ms_cache.put(key, payload)
+    return payload
 
 
 # --- Connections hub ------------------------------------------------------

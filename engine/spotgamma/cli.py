@@ -58,6 +58,26 @@ def export_thinkscript(
     typer.echo(f"wrote {target}")
 
 
+@app.command("market-structure")
+def market_structure(
+    symbol: str = typer.Argument("SPX", help="Underlying for the gamma gate, e.g. SPX."),
+    source: str = typer.Option("cboe", help="Chain source for dealer gamma (cboe is free)."),
+) -> None:
+    """Print the composite market-structure regime read (vol + macro + gamma)."""
+    from .marketstructure.read import build_market_structure
+
+    levels = _levels(symbol, source)
+    ms = build_market_structure(net_gex=levels.net_gex, spot=levels.spot, zero_gamma=levels.zero_gamma)
+    r = ms.read
+    typer.echo(f"Market Structure — {symbol.upper()}")
+    typer.echo(f"  RORO {r.roro_score:+.2f} ({r.bias})  ·  vol {r.vol_regime}  ·  gamma gate x{r.gamma_modifier:.2f}")
+    typer.echo(f"  regime score {r.regime_score:+.2f}" + ("  [DIVERGENCE]" if r.divergence else ""))
+    for s in r.signals:
+        typer.echo(f"    {s.score:+.2f}  {s.detail}")
+    if ms.unavailable:
+        typer.echo(f"  unavailable: {', '.join(ms.unavailable)}")
+
+
 def main() -> None:  # console-script entry point
     app()
 
