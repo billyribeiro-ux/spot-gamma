@@ -47,3 +47,35 @@ jobs:
       - run: npm run check
       - run: npm run test
       - run: npm run build
+
+  e2e:
+    name: dashboard e2e (playwright)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: dashboard/package-lock.json
+      - name: Install backend (for the API the e2e boots)
+        run: pip install -e "engine[api]"
+      - name: Install dashboard deps
+        working-directory: dashboard
+        run: npm ci
+      - name: Install Playwright browser
+        working-directory: dashboard
+        run: npx playwright install --with-deps chromium
+      - name: Run e2e
+        working-directory: dashboard
+        run: npx playwright test
+      - uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() }}
+        with:
+          name: playwright-report
+          path: dashboard/playwright-report
+          retention-days: 7
