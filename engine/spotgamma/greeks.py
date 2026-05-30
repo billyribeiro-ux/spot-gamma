@@ -11,6 +11,7 @@ Two uses:
 Gamma is identical for a call and a put at the same strike/expiry/vol, so a
 single function serves both.
 """
+
 from __future__ import annotations
 
 import math
@@ -39,7 +40,7 @@ def bs_gamma_array(spot, strike, t_years, iv, rate=0.04):
     safe_t = np.where(valid, t_years, 1.0)
     safe_iv = np.where(valid, iv, 1.0)
     sigma_sqrt_t = safe_iv * np.sqrt(safe_t)
-    d1 = (np.log(spot / np.where(valid, strike, 1.0)) + (rate + 0.5 * safe_iv ** 2) * safe_t) / sigma_sqrt_t
+    d1 = (np.log(spot / np.where(valid, strike, 1.0)) + (rate + 0.5 * safe_iv**2) * safe_t) / sigma_sqrt_t
     pdf = np.exp(-0.5 * d1 * d1) / _SQRT_2PI
     return np.where(valid, pdf / (spot * sigma_sqrt_t), 0.0)
 

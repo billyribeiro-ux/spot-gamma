@@ -5,6 +5,7 @@ active-source selection, error handling, and the optional admin-token gate. The
 module-level config (token, store path) is read at import, so tests that change
 it reload ``api.main`` with the patched environment.
 """
+
 import importlib
 
 import pytest
@@ -36,8 +37,8 @@ def test_save_persists_but_never_echoes_secret(client):
     assert r.status_code == 200
     poly = next(s for s in client.get("/admin/sources").json()["sources"] if s["name"] == "polygon")
     field = poly["fields"][0]
-    assert field["saved"] is True          # we know it's set
-    assert field["value"] == ""            # but the value is never returned
+    assert field["saved"] is True  # we know it's set
+    assert field["value"] == ""  # but the value is never returned
     assert poly["configured"] is True
     # and the secret is not present anywhere in the serialized response
     assert "SUPERSECRET" not in r.text

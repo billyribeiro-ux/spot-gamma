@@ -18,17 +18,16 @@ Run::
     curl localhost:8000/levels/SPX
     open http://localhost:5173/admin            # via the dashboard
 """
+
 from __future__ import annotations
 
 import os
 import secrets
 import time
-from typing import Optional
 
 from fastapi import APIRouter, Depends, FastAPI, Header, HTTPException, Query, status
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-
 from spotgamma.history import TIMEFRAMES, fetch_history
 from spotgamma.levels import compute_levels
 from spotgamma.models import GammaLevels
@@ -46,8 +45,7 @@ def _allowed_origins() -> list[str]:
     # Dashboard dev server + the Tauri desktop webview origins (macOS/Windows/Linux).
     raw = os.environ.get(
         "SPOTGAMMA_ALLOWED_ORIGINS",
-        "http://localhost:5173,http://127.0.0.1:5173,"
-        "tauri://localhost,http://tauri.localhost,https://tauri.localhost",
+        "http://localhost:5173,http://127.0.0.1:5173,tauri://localhost,http://tauri.localhost,https://tauri.localhost",
     )
     return [o.strip() for o in raw.split(",") if o.strip()]
 
@@ -67,7 +65,7 @@ _history_cache: dict[tuple[str, str], tuple[float, dict]] = {}
 HISTORY_TTL = float(os.environ.get("SPOTGAMMA_HISTORY_TTL", "20"))
 
 
-def _resolved_source(requested: Optional[str]) -> str:
+def _resolved_source(requested: str | None) -> str:
     """Which source to use: explicit request > saved active > env default."""
     return requested or store.active_source() or DEFAULT_SOURCE
 
@@ -101,7 +99,7 @@ def health() -> dict:
 
 
 @app.get("/levels/{symbol}", response_model=GammaLevels)
-def levels(symbol: str, source: Optional[str] = Query(default=None)) -> GammaLevels:
+def levels(symbol: str, source: str | None = Query(default=None)) -> GammaLevels:
     return _get_levels(symbol, _resolved_source(source))
 
 
@@ -122,7 +120,7 @@ def history(symbol: str, tf: str = Query(default="5m")) -> dict:
 
 
 # --- Connections hub ------------------------------------------------------
-def require_admin(x_admin_token: Optional[str] = Header(default=None)) -> None:
+def require_admin(x_admin_token: str | None = Header(default=None)) -> None:
     """Gate /admin routes when SPOTGAMMA_ADMIN_TOKEN is configured."""
     if ADMIN_TOKEN and not (x_admin_token and secrets.compare_digest(x_admin_token, ADMIN_TOKEN)):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="admin token required")
@@ -141,20 +139,31 @@ def _source_status(name: str) -> dict:
     fields = []
     for f in spec.fields:
         env_set = bool(os.environ.get(f.env))
-        fields.append({
-            "key": f.key, "label": f.label, "secret": f.secret, "required": f.required,
-            "env": f.env, "placeholder": f.placeholder,
-            # never echo secret values back; just whether they're set
-            "saved": f.key in saved,
-            "env_fallback": env_set,
-            "value": (saved.get(f.key, "") if not f.secret else ""),
-        })
+        fields.append(
+            {
+                "key": f.key,
+                "label": f.label,
+                "secret": f.secret,
+                "required": f.required,
+                "env": f.env,
+                "placeholder": f.placeholder,
+                # never echo secret values back; just whether they're set
+                "saved": f.key in saved,
+                "env_fallback": env_set,
+                "value": (saved.get(f.key, "") if not f.secret else ""),
+            }
+        )
     needs = [f for f in spec.fields if f.required]
     configured = (not needs) or all(f.key in saved or os.environ.get(f.env) for f in needs)
     return {
-        "name": spec.name, "label": spec.label, "kind": spec.kind, "notes": spec.notes,
-        "needs_credentials": spec.needs_credentials, "fields": fields,
-        "configured": configured, "active": _resolved_source(None) == spec.name,
+        "name": spec.name,
+        "label": spec.label,
+        "kind": spec.kind,
+        "notes": spec.notes,
+        "needs_credentials": spec.needs_credentials,
+        "fields": fields,
+        "configured": configured,
+        "active": _resolved_source(None) == spec.name,
     }
 
 
@@ -177,7 +186,7 @@ def admin_save(name: str, body: CredentialsBody) -> dict:
 
 
 @admin.post("/sources/{name}/test")
-def admin_test(name: str, body: Optional[CredentialsBody] = None) -> dict:
+def admin_test(name: str, body: CredentialsBody | None = None) -> dict:
     _require_known(name)
     # test against just-entered creds if provided, else what's saved
     creds = store.get_credentials(name)

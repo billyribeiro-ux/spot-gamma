@@ -1,4 +1,5 @@
 """Contract-level GEX math with hand-computable values."""
+
 from datetime import date, datetime
 
 from spotgamma.gex import aggregate_by_strike, contract_gex, net_gex
@@ -17,7 +18,9 @@ def _snap(contracts):
 def test_contract_gex_formula_and_sign():
     # GEX = gamma * OI * multiplier(100) * spot^2 * 0.01
     #     = 0.01 * 1000 * 100 * 100^2 * 0.01 = 100_000
-    call = OptionContract(option_type=OptionType.CALL, strike=100, expiration=date(2026, 6, 30), open_interest=1000, gamma=0.01)
+    call = OptionContract(
+        option_type=OptionType.CALL, strike=100, expiration=date(2026, 6, 30), open_interest=1000, gamma=0.01
+    )
     snap = _snap([call])
     assert contract_gex(call, snap) == 100_000.0  # calls positive
 
@@ -49,7 +52,9 @@ def test_aggregate_by_strike_buckets():
 def test_source_gamma_used_at_snapshot_spot_only():
     # At a different spot, source gamma is ignored and BS is recomputed.
     exp = date(2026, 6, 30)
-    c = OptionContract(option_type=OptionType.CALL, strike=100, expiration=exp, open_interest=1000, gamma=0.01, implied_volatility=0.2)
+    c = OptionContract(
+        option_type=OptionType.CALL, strike=100, expiration=exp, open_interest=1000, gamma=0.01, implied_volatility=0.2
+    )
     snap = _snap([c])
     at_spot = contract_gex(c, snap, snap.spot)
     shifted = contract_gex(c, snap, snap.spot * 1.05)

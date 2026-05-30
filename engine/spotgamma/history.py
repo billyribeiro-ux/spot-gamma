@@ -10,6 +10,7 @@ Parsing is a pure function (:func:`parse_yahoo_chart`) so it's unit-tested
 without the network. A broker/vendor source with native history (Polygon
 aggregates, Schwab pricehistory) can be layered in later behind the same shape.
 """
+
 from __future__ import annotations
 
 from typing import NamedTuple

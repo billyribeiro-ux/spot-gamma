@@ -17,10 +17,11 @@ Response shape: ``{"header": {"format": [...col names...]}, "response": [
 {"contract": {"root","expiration":YYYYMMDD,"strike":strike×1000,"right":"C"/"P"},
 "ticks": [[...row...]]}, ...]}``.
 """
+
 from __future__ import annotations
 
 import os
-from datetime import date, datetime, timezone
+from datetime import UTC, date, datetime
 
 from ..models import ChainSnapshot, OptionContract, OptionType
 from .base import ChainSource
@@ -46,8 +47,19 @@ def roots_for(symbol: str) -> list[str]:
 _GREEKS_ENDPOINT = "greeks_second_order"
 # Documented fixed column order, used as a fallback if header.format is absent.
 _GREEKS_FORMAT = [
-    "ms_of_day", "bid", "ask", "gamma", "vanna", "charm", "vomma", "veta",
-    "implied_vol", "iv_error", "ms_of_day2", "underlying_price", "date",
+    "ms_of_day",
+    "bid",
+    "ask",
+    "gamma",
+    "vanna",
+    "charm",
+    "vomma",
+    "veta",
+    "implied_vol",
+    "iv_error",
+    "ms_of_day2",
+    "underlying_price",
+    "date",
 ]
 _OI_FORMAT = ["ms_of_day", "open_interest", "date"]
 
@@ -106,7 +118,7 @@ def parse_theta_bulk(greeks_payload: dict, oi_payload: dict, symbol: str) -> Cha
     return ChainSnapshot(
         symbol=symbol.upper(),
         spot=spot,
-        timestamp=datetime.now(timezone.utc),
+        timestamp=datetime.now(UTC),
         contracts=contracts,
     )
 
@@ -136,7 +148,7 @@ class ThetaDataSource(ChainSource):
             # Any HTTP response means the local Terminal gateway is up.
             r = requests.get(f"{self.base_url}/v2/system/mdds/status", timeout=8)
             return True, f"Theta Terminal reachable (HTTP {r.status_code})"
-        except Exception as e:  # noqa: BLE001
+        except Exception as e:
             return False, f"Theta Terminal not reachable at {self.base_url}: {e}"
 
     def get_chain(self, symbol: str) -> ChainSnapshot:
@@ -149,6 +161,6 @@ class ThetaDataSource(ChainSource):
         return ChainSnapshot(
             symbol=symbol.upper(),
             spot=spot,
-            timestamp=datetime.now(timezone.utc),
+            timestamp=datetime.now(UTC),
             contracts=all_contracts,
         )

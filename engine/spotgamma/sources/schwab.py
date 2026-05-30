@@ -12,10 +12,11 @@ symbols use the ``$SPX`` / ``$NDX`` convention.
 Response shape: ``callExpDateMap`` / ``putExpDateMap`` are nested dicts
 ``{"YYYY-MM-DD:DTE": {"<strike>": [contractObj, ...]}}``.
 """
+
 from __future__ import annotations
 
 import os
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from ..models import ChainSnapshot, OptionContract, OptionType
 from .base import ChainSource
@@ -68,11 +69,14 @@ def parse_schwab_chain(payload: dict, symbol: str) -> ChainSnapshot:
     contracts: list[OptionContract] = []
     _emit(payload.get("callExpDateMap", {}), OptionType.CALL, contracts)
     _emit(payload.get("putExpDateMap", {}), OptionType.PUT, contracts)
-    spot = float(payload.get("underlyingPrice") or payload.get("underlying", {}).get("last"))
+    raw_spot = payload.get("underlyingPrice") or payload.get("underlying", {}).get("last")
+    if raw_spot is None:
+        raise RuntimeError(f"Schwab returned no underlying price for {symbol}")
+    spot = float(raw_spot)
     return ChainSnapshot(
         symbol=symbol.upper().lstrip("$"),
         spot=spot,
-        timestamp=datetime.now(timezone.utc),
+        timestamp=datetime.now(UTC),
         contracts=contracts,
     )
 
@@ -102,7 +106,7 @@ class SchwabSource(ChainSource):
                 return False, "401 — token expired or invalid (Schwab tokens refresh every 7 days)"
             r.raise_for_status()
             return True, "Authenticated; market data reachable"
-        except Exception as e:  # noqa: BLE001
+        except Exception as e:
             return False, str(e)
 
     def get_chain(self, symbol: str) -> ChainSnapshot:

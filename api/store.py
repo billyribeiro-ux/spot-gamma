@@ -6,8 +6,10 @@ stored in a gitignored JSON file with 0600 permissions, not encrypted. Do not
 expose this API to untrusted networks. Environment variables still work as a
 fallback for anything not saved here.
 """
+
 from __future__ import annotations
 
+import contextlib
 import json
 import os
 from pathlib import Path
@@ -34,10 +36,8 @@ def _write(data: dict) -> None:
     p = _path()
     p.parent.mkdir(parents=True, exist_ok=True)
     p.write_text(json.dumps(data, indent=2))
-    try:
+    with contextlib.suppress(OSError):  # best-effort on platforms without POSIX perms
         os.chmod(p, 0o600)
-    except OSError:
-        pass  # best-effort on platforms without POSIX perms
 
 
 def get_credentials(name: str) -> dict:

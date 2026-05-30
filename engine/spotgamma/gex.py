@@ -12,9 +12,13 @@ Contract-level dollar gamma per 1% move::
 The result is the dollar notional of underlying dealers must trade to stay
 delta-neutral for a 1% move in spot.
 """
+
 from __future__ import annotations
 
+import math
 from collections import defaultdict
+from datetime import date
+from typing import NamedTuple
 
 from .greeks import bs_gamma
 from .models import ChainSnapshot, ExpiryGamma, OptionContract, OptionType, StrikeGamma
@@ -32,7 +36,7 @@ def _contract_gamma(c: OptionContract, snap: ChainSnapshot, spot: float) -> floa
     Black-Scholes for any other spot (profile mode) or when source gamma is
     missing.
     """
-    at_snapshot = spot == snap.spot
+    at_snapshot = math.isclose(spot, snap.spot, rel_tol=1e-9)
     if at_snapshot and c.gamma is not None:
         return c.gamma
     iv = c.implied_volatility if c.implied_volatility else _FALLBACK_IV
@@ -67,7 +71,7 @@ def aggregate_by_expiry(snap: ChainSnapshot, spot: float | None = None) -> list[
     for c in snap.contracts:
         net[c.expiration] += contract_gex(c, snap, spot)
     out = [
-        ExpiryGamma(expiration=exp, net_gex=val, dte_days=(exp - snap.timestamp.date()).days)
+        ExpiryGamma(expiration=exp, net_gex=val, dte_days=snap.days_to_expiry(exp))
         for exp, val in net.items()
     ]
     out.sort(key=lambda e: e.expiration)
@@ -77,3 +81,52 @@ def aggregate_by_expiry(snap: ChainSnapshot, spot: float | None = None) -> list[
 def net_gex(snap: ChainSnapshot, spot: float | None = None) -> float:
     """Total signed dollar gamma across the whole chain."""
     return sum(contract_gex(c, snap, spot) for c in snap.contracts)
+
+
+class ChainAggregates(NamedTuple):
+    """Everything :func:`spotgamma.levels.compute_levels` needs, from one pass."""
+
+    by_strike: list[StrikeGamma]
+    by_expiry: list[ExpiryGamma]
+    net_gex: float
+    total_abs_gex: float
+    zero_dte_net_gex: float
+    zero_dte_abs_gex: float
+
+
+def aggregate_all(snap: ChainSnapshot, spot: float | None = None) -> ChainAggregates:
+    """Compute every chain aggregate in a single pass.
+
+    The naive approach calls ``contract_gex`` 4–6× per contract (by-strike,
+    by-expiry, net, total-abs, and the two 0DTE sums). On a 30k-contract index
+    chain that is >100k redundant gamma evaluations per request; folding them
+    into one loop computes each contract's GEX exactly once.
+    """
+    calls: dict[float, float] = defaultdict(float)
+    puts: dict[float, float] = defaultdict(float)
+    by_exp: dict[date, float] = defaultdict(float)
+    net = total_abs = zdte_net = zdte_abs = 0.0
+    session = snap.session_date
+
+    for c in snap.contracts:
+        g = contract_gex(c, snap, spot)
+        if c.option_type is OptionType.CALL:
+            calls[c.strike] += g
+        else:
+            puts[c.strike] += g
+        by_exp[c.expiration] += g
+        net += g
+        total_abs += abs(g)
+        if c.expiration == session:
+            zdte_net += g
+            zdte_abs += abs(g)
+
+    by_strike = [
+        StrikeGamma(strike=k, call_gex=calls.get(k, 0.0), put_gex=puts.get(k, 0.0))
+        for k in sorted(set(calls) | set(puts))
+    ]
+    by_expiry = sorted(
+        (ExpiryGamma(expiration=e, net_gex=v, dte_days=snap.days_to_expiry(e)) for e, v in by_exp.items()),
+        key=lambda e: e.expiration,
+    )
+    return ChainAggregates(by_strike, by_expiry, net, total_abs, zdte_net, zdte_abs)

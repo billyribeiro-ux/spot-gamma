@@ -1,6 +1,8 @@
 """End-to-end level computation on the sample fixtures."""
-import pytest
 
+from datetime import UTC
+
+import pytest
 from spotgamma.export_thinkscript import render_thinkscript
 from spotgamma.levels import compute_levels
 from spotgamma.sources.sample import SampleSource
@@ -69,3 +71,40 @@ def test_thinkscript_export_contains_levels():
     assert f"input callWall = {levels.call_wall:.2f};" in script
     assert f"input putWall = {levels.put_wall:.2f};" in script
     assert "AddLabel" in script and "Zero Gamma" in script
+
+
+def _snap(contracts, spot=100.0):
+    from datetime import datetime
+
+    from spotgamma.models import ChainSnapshot
+
+    return ChainSnapshot(
+        symbol="TEST", spot=spot,
+        timestamp=datetime(2026, 1, 5, 18, 0, tzinfo=UTC), contracts=contracts,
+    )
+
+
+def test_empty_chain_returns_no_data_not_crash():
+    # Regression: _absolute_gamma/_hedge_wall did max([]) -> ValueError on empty.
+    levels = compute_levels(_snap([]))
+    assert levels.net_gex == 0.0 and levels.by_strike == []
+    assert levels.call_wall is None and levels.put_wall is None
+    assert levels.absolute_gamma is None and levels.hedge_wall is None
+    assert levels.zero_dte_share == 0.0
+
+
+def test_negative_gamma_regime():
+    from datetime import date
+
+    from spotgamma.models import OptionContract, OptionType
+
+    exp = date(2026, 2, 20)
+    contracts = [
+        OptionContract(option_type=OptionType.PUT, strike=95, expiration=exp,
+                       open_interest=8000, gamma=0.05),
+        OptionContract(option_type=OptionType.CALL, strike=105, expiration=exp,
+                       open_interest=200, gamma=0.01),
+    ]
+    levels = compute_levels(_snap(contracts))
+    assert levels.net_gex < 0 and levels.regime == "negative"
+    assert levels.put_wall == 95  # the dominant short-gamma shelf

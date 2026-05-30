@@ -5,9 +5,11 @@ is where net dealer gamma would flip sign as spot moves. To find it honestly we
 recompute every contract's gamma (Black-Scholes) at a grid of hypothetical spot
 levels and locate where the aggregate net-GEX curve crosses zero.
 """
+
 from __future__ import annotations
 
-from typing import NamedTuple, Optional
+from itertools import pairwise
+from typing import NamedTuple
 
 from .greeks import bs_gamma_array
 from .models import ChainSnapshot, OptionType
@@ -40,9 +42,26 @@ def gamma_profile(
     spots = [lo + i * (hi - lo) / (steps - 1) for i in range(steps)]
 
     if len(contracts) < _VECTORIZE_THRESHOLD:
-        from .gex import net_gex  # scalar path reuses the per-contract function
+        from .greeks import bs_gamma
 
-        return [ProfilePoint(s, net_gex(snap, s)) for s in spots]
+        # Recompute BS gamma at every hypothetical spot (no source-gamma shortcut),
+        # so the curve has a single consistent basis and matches the vectorized
+        # path exactly. Signed OI folds in the dealer call(+)/put(-) convention.
+        prepared = [
+            (
+                c.strike,
+                snap.dte(c.expiration),
+                (c.implied_volatility or _FALLBACK_IV),
+                c.open_interest * (1 if c.option_type is OptionType.CALL else -1),
+            )
+            for c in contracts
+        ]
+        mult, rate = snap.multiplier, snap.risk_free_rate
+        points: list[ProfilePoint] = []
+        for s in spots:
+            net = sum(bs_gamma(s, k, t, iv, rate) * soi for (k, t, iv, soi) in prepared)
+            points.append(ProfilePoint(s, net * mult * s * s * 0.01))
+        return points
 
     import numpy as np
 
@@ -61,20 +80,23 @@ def gamma_profile(
     return points
 
 
-def find_zero_gamma(profile: list[ProfilePoint], spot: float) -> Optional[float]:
-    """Spot level where the net-GEX curve crosses zero.
+def find_zero_gamma(profile: list[ProfilePoint], spot: float) -> float | None:
+    """Spot level where the net-GEX curve crosses zero, nearest to current spot.
 
-    Returns the crossing nearest to current spot via linear interpolation. If
-    the curve never changes sign across the grid there is no flip in range and
-    we return ``None`` (e.g. deeply positive- or negative-gamma all the way).
+    Detects crossings by a strict sign change of the product ``g0*g1`` (so an
+    exact-zero node is counted once, not double-counted with its neighbour) and
+    guards the interpolation denominator. Returns ``None`` when the curve never
+    changes sign across the grid (no flip in range).
     """
     crossings: list[float] = []
-    for (s0, g0), (s1, g1) in zip(profile, profile[1:]):
+    for (s0, g0), (s1, g1) in pairwise(profile):
         if g0 == 0.0:
-            crossings.append(s0)
-        if (g0 < 0) != (g1 < 0) and g0 != 0.0:
-            # linear interpolation for the zero between the two grid points
+            crossings.append(s0)  # exact-zero node
+        elif g0 * g1 < 0 and g1 != g0:
+            # strict sign change between distinct values -> linear interpolation
             crossings.append(s0 + (s1 - s0) * (-g0) / (g1 - g0))
+    if profile and profile[-1].net_gex == 0.0:
+        crossings.append(profile[-1].spot)
     if not crossings:
         return None
     return min(crossings, key=lambda x: abs(x - spot))

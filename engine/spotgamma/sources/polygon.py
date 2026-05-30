@@ -8,10 +8,11 @@ interest, and quotes per contract in one paginated call. Index options use the
 Auth: ``POLYGON_API_KEY``. Greeks/real-time require a paid Options plan; the
 free/delayed tiers still return the chain structure.
 """
+
 from __future__ import annotations
 
 import os
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from ..models import ChainSnapshot, OptionContract, OptionType
 from .base import ChainSource
@@ -70,9 +71,7 @@ class PolygonSource(ChainSource):
     def __init__(self, api_key: str | None = None) -> None:
         self.api_key = api_key or os.environ.get("POLYGON_API_KEY")
         if not self.api_key:
-            raise RuntimeError(
-                "PolygonSource requires POLYGON_API_KEY. Use --source cboe for a free option."
-            )
+            raise RuntimeError("PolygonSource requires POLYGON_API_KEY. Use --source cboe for a free option.")
 
     def test_connection(self) -> tuple[bool, str]:
         import requests
@@ -83,7 +82,7 @@ class PolygonSource(ChainSource):
                 return False, f"{r.status_code} — API key rejected"
             r.raise_for_status()
             return True, "API key valid"
-        except Exception as e:  # noqa: BLE001
+        except Exception as e:
             return False, str(e)
 
     def get_chain(self, symbol: str) -> ChainSnapshot:
@@ -110,6 +109,6 @@ class PolygonSource(ChainSource):
         return ChainSnapshot(
             symbol=symbol.upper().removeprefix("I:"),
             spot=spot,
-            timestamp=datetime.now(timezone.utc),
+            timestamp=datetime.now(UTC),
             contracts=parse_polygon_results(results, symbol, spot),
         )

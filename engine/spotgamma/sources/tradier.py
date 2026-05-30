@@ -8,10 +8,11 @@ Auth: set ``TRADIER_TOKEN`` (and optionally ``TRADIER_BASE_URL`` to switch
 between sandbox and production). This adapter is intentionally not exercised by
 the offline test suite; it is the upgrade path from the sample source.
 """
+
 from __future__ import annotations
 
 import os
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from ..models import ChainSnapshot, OptionContract, OptionType
 from .base import ChainSource
@@ -59,7 +60,7 @@ class TradierSource(ChainSource):
         try:
             self._get("/markets/quotes", {"symbols": "SPY"})
             return True, "Authenticated; market data reachable"
-        except Exception as e:  # noqa: BLE001 — surface any auth/network failure
+        except Exception as e:
             return False, str(e)
 
     # --- ChainSource ------------------------------------------------------
@@ -89,6 +90,6 @@ class TradierSource(ChainSource):
         return ChainSnapshot(
             symbol=symbol.upper(),
             spot=spot,
-            timestamp=datetime.now(timezone.utc),
+            timestamp=datetime.now(UTC),
             contracts=contracts,
         )

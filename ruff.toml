@@ -1,0 +1,24 @@
+# Lint + format config for the Python engine and API (run from repo root).
+target-version = "py311"
+line-length = 120
+extend-exclude = ["dashboard", "**/build", "**/.svelte-kit"]
+
+[lint]
+select = [
+    "E",   # pycodestyle errors
+    "F",   # pyflakes
+    "W",   # pycodestyle warnings
+    "I",   # isort (import order)
+    "UP",  # pyupgrade (modern syntax)
+    "B",   # flake8-bugbear (likely bugs)
+    "SIM", # flake8-simplify
+    "C4",  # flake8-comprehensions
+    "RUF", # ruff-specific
+]
+# FastAPI/Typer intentionally use callables (Query/Header/Option) as argument
+# defaults; that's the framework idiom, not a bug. RUF001/002/003 flag legit
+# typographic characters (× en-dash) used deliberately in docstrings/prose.
+ignore = ["B008", "RUF001", "RUF002", "RUF003"]
+
+[lint.per-file-ignores]
+"**/tests/*" = ["B011"]

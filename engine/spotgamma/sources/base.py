@@ -5,6 +5,7 @@ this single method. The engine never imports a vendor SDK directly — it only
 ever sees a normalized :class:`ChainSnapshot`. This is what lets us swap or add
 data sources without touching gamma math, the API, or the dashboard.
 """
+
 from __future__ import annotations
 
 from abc import ABC, abstractmethod

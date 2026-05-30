@@ -5,6 +5,7 @@ This is the default source so the whole pipeline — engine, CLI, API, dashboard
 ``engine/tests/fixtures/{symbol}_chain.json`` and follow the same schema the
 live adapters normalize to.
 """
+
 from __future__ import annotations
 
 import json

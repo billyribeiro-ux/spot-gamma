@@ -12,9 +12,10 @@ not (``SPY``, ``QQQ``).
 Caveats: unofficial/undocumented endpoint, ~15-min delayed, and Cboe's ToS
 restricts automated scraping — fine for personal research, not redistribution.
 """
+
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from ..models import ChainSnapshot, OptionContract
 from .base import ChainSource
@@ -39,9 +40,9 @@ def parse_cboe_payload(payload: dict, symbol: str) -> ChainSnapshot:
     spot = float(data["current_price"])
     ts_raw = payload.get("timestamp")
     try:
-        timestamp = datetime.fromisoformat(ts_raw).replace(tzinfo=timezone.utc) if ts_raw else datetime.now(timezone.utc)
+        timestamp = datetime.fromisoformat(ts_raw).replace(tzinfo=UTC) if ts_raw else datetime.now(UTC)
     except ValueError:
-        timestamp = datetime.now(timezone.utc)
+        timestamp = datetime.now(UTC)
 
     contracts: list[OptionContract] = []
     for o in data["options"]:

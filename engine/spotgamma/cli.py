@@ -5,11 +5,10 @@ Examples::
     spotgamma levels SPX --source sample --out levels.json
     spotgamma export-thinkscript SPX --source sample
 """
+
 from __future__ import annotations
 
-import json
 from pathlib import Path
-from typing import Optional
 
 import typer
 
@@ -32,7 +31,7 @@ def _levels(symbol: str, source: str):
 def levels(
     symbol: str = typer.Argument(..., help="Underlying, e.g. SPX, NDX, SPY, QQQ."),
     source: str = typer.Option("sample", help="Chain source: sample|cboe|tradier|schwab|polygon|thetadata|tastytrade."),
-    out: Optional[Path] = typer.Option(None, help="Write levels JSON here (else stdout)."),
+    out: Path | None = typer.Option(None, help="Write levels JSON here (else stdout)."),
 ) -> None:
     """Compute and print/save gamma levels for a symbol."""
     result = _levels(symbol, source)
@@ -48,7 +47,7 @@ def levels(
 def export_thinkscript(
     symbol: str = typer.Argument(..., help="Underlying, e.g. SPX."),
     source: str = typer.Option("sample", help="Chain source: sample|cboe|tradier|schwab|polygon|thetadata|tastytrade."),
-    out: Optional[Path] = typer.Option(None, help="Output .ts path (default thinkscript/spot_gamma_<sym>.ts)."),
+    out: Path | None = typer.Option(None, help="Output .ts path (default thinkscript/spot_gamma_<sym>.ts)."),
 ) -> None:
     """Render a Thinkorswim study with the computed levels as inputs."""
     result = _levels(symbol, source)

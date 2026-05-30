@@ -14,14 +14,14 @@ from __future__ import annotations
 
 import json
 import math
-from datetime import date, datetime, timedelta
-from pathlib import Path
 
 # Reuse the engine's own Black-Scholes so fixture gamma matches snapshot gamma.
 import sys
+from datetime import date, datetime, timedelta
+from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from spotgamma.greeks import bs_gamma  # noqa: E402
+from spotgamma.greeks import bs_gamma
 
 FIXTURE_DIR = Path(__file__).resolve().parents[1] / "tests" / "fixtures"
 

@@ -17,11 +17,12 @@ token). Requires the ``stream`` extra (``websockets``). Free with a funded
 account. **Experimental** — the REST/pure parsing is unit-tested; the live
 streaming path needs verification against a real account.
 """
+
 from __future__ import annotations
 
 import os
-from datetime import datetime, timezone
-from typing import NamedTuple
+from datetime import UTC, datetime
+from typing import ClassVar, NamedTuple
 
 from ..models import ChainSnapshot, OptionContract, OptionType
 from .base import ChainSource
@@ -71,7 +72,7 @@ def build_snapshot(
                 implied_volatility=g.get("volatility"),
             )
         )
-    return ChainSnapshot(symbol=symbol.upper(), spot=spot, timestamp=datetime.now(timezone.utc), contracts=contracts)
+    return ChainSnapshot(symbol=symbol.upper(), spot=spot, timestamp=datetime.now(UTC), contracts=contracts)
 
 
 def parse_compact_feed(data: list, field_counts: dict[str, int]) -> list[tuple[str, list]]:
@@ -98,8 +99,8 @@ class TastytradeSource(ChainSource):
     name = "tastytrade"
 
     # Greeks: [eventType, eventSymbol, gamma, volatility]; Summary: [..., openInterest]
-    _GREEKS_FIELDS = ["eventType", "eventSymbol", "gamma", "volatility"]
-    _SUMMARY_FIELDS = ["eventType", "eventSymbol", "openInterest"]
+    _GREEKS_FIELDS: ClassVar[list[str]] = ["eventType", "eventSymbol", "gamma", "volatility"]
+    _SUMMARY_FIELDS: ClassVar[list[str]] = ["eventType", "eventSymbol", "openInterest"]
 
     def __init__(self, username: str | None = None, password: str | None = None, base_url: str = _PROD) -> None:
         self.username = username or os.environ.get("TASTYTRADE_USERNAME")
@@ -107,8 +108,7 @@ class TastytradeSource(ChainSource):
         self.base_url = base_url
         if not (self.username and self.password):
             raise RuntimeError(
-                "TastytradeSource requires TASTYTRADE_USERNAME/PASSWORD. "
-                "Use --source cboe for a free no-auth option."
+                "TastytradeSource requires TASTYTRADE_USERNAME/PASSWORD. Use --source cboe for a free no-auth option."
             )
 
     # --- REST -------------------------------------------------------------
@@ -166,7 +166,7 @@ class TastytradeSource(ChainSource):
             # validate we can also mint a quote token (needed for streaming greeks)
             self._quote_token(requests, session)
             return True, "Logged in; streaming quote token issued"
-        except Exception as e:  # noqa: BLE001
+        except Exception as e:
             return False, str(e)
 
     # --- Streaming --------------------------------------------------------
@@ -187,18 +187,30 @@ class TastytradeSource(ChainSource):
         symbols = [m.streamer_symbol for m in chain]
 
         async with websockets.connect(dxlink_url, max_size=None) as ws:
+
             async def send(msg):
                 await ws.send(json.dumps(msg))
 
-            await send({"type": "SETUP", "channel": 0, "version": "0.1-spotgamma",
-                        "keepaliveTimeout": 60, "acceptKeepaliveTimeout": 60})
+            await send(
+                {
+                    "type": "SETUP",
+                    "channel": 0,
+                    "version": "0.1-spotgamma",
+                    "keepaliveTimeout": 60,
+                    "acceptKeepaliveTimeout": 60,
+                }
+            )
             await send({"type": "AUTH", "channel": 0, "token": token})
-            await send({"type": "CHANNEL_REQUEST", "channel": 1, "service": "FEED",
-                        "parameters": {"contract": "AUTO"}})
-            await send({"type": "FEED_SETUP", "channel": 1, "acceptAggregationPeriod": 0.1,
-                        "acceptDataFormat": "COMPACT",
-                        "acceptEventFields": {"Greeks": self._GREEKS_FIELDS,
-                                              "Summary": self._SUMMARY_FIELDS}})
+            await send({"type": "CHANNEL_REQUEST", "channel": 1, "service": "FEED", "parameters": {"contract": "AUTO"}})
+            await send(
+                {
+                    "type": "FEED_SETUP",
+                    "channel": 1,
+                    "acceptAggregationPeriod": 0.1,
+                    "acceptDataFormat": "COMPACT",
+                    "acceptEventFields": {"Greeks": self._GREEKS_FIELDS, "Summary": self._SUMMARY_FIELDS},
+                }
+            )
             sub = [{"type": "Greeks", "symbol": s} for s in symbols]
             sub += [{"type": "Summary", "symbol": s} for s in symbols]
             # DXLink rejects oversized subscription messages (WS 1009); chunk it.
@@ -209,7 +221,7 @@ class TastytradeSource(ChainSource):
             while asyncio.get_event_loop().time() < deadline:
                 try:
                     raw = await asyncio.wait_for(ws.recv(), timeout=deadline - asyncio.get_event_loop().time())
-                except asyncio.TimeoutError:
+                except TimeoutError:
                     break
                 msg = json.loads(raw)
                 if msg.get("type") == "KEEPALIVE":
