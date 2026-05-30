@@ -14,6 +14,7 @@
     "tauri": "tauri"
   },
   "dependencies": {
+    "@fontsource-variable/inter": "^5.2.8",
     "@threlte/core": "^8.5.16",
     "@threlte/extras": "^9.20.1",
     "d3": "^7.9.0",

@@ -125,24 +125,24 @@
 			localization: { locale: 'en-US' },
 			layout: {
 				background: { type: ColorType.Solid, color: 'transparent' },
-				textColor: '#9ca3af',
-				fontFamily: 'system-ui, sans-serif'
+				textColor: '#a3adc2',
+				fontFamily: "'Inter Variable', system-ui, sans-serif"
 			},
 			grid: {
-				vertLines: { color: 'rgba(148,163,184,0.06)' },
-				horzLines: { color: 'rgba(148,163,184,0.06)' }
+				vertLines: { color: 'rgba(255,255,255,0.04)' },
+				horzLines: { color: 'rgba(255,255,255,0.04)' }
 			},
 			crosshair: { mode: CrosshairMode.Normal },
-			rightPriceScale: { borderColor: 'rgba(148,163,184,0.15)' },
-			timeScale: { borderColor: 'rgba(148,163,184,0.15)', timeVisible: true, secondsVisible: false }
+			rightPriceScale: { borderColor: 'rgba(255,255,255,0.08)' },
+			timeScale: { borderColor: 'rgba(255,255,255,0.08)', timeVisible: true, secondsVisible: false }
 		});
 		series = chart.addSeries(CandlestickSeries, {
-			upColor: '#22c55e',
-			downColor: '#ef4444',
-			borderUpColor: '#22c55e',
-			borderDownColor: '#ef4444',
-			wickUpColor: '#4ade80',
-			wickDownColor: '#f87171',
+			upColor: '#2ed390',
+			downColor: '#ff5269',
+			borderUpColor: '#2ed390',
+			borderDownColor: '#ff5269',
+			wickUpColor: '#69e3b0',
+			wickDownColor: '#ff8593',
 			// Union the candle range with the level range so the Call/Put walls are
 			// always visible, without ever clipping the candles.
 			autoscaleInfoProvider: (orig: () => AutoscaleInfo | null) => {

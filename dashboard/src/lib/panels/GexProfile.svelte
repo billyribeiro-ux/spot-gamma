@@ -62,16 +62,17 @@
 	<span class="cap">GEX</span>
 	<svg viewBox="0 0 {W} {height}" width={W} {height} role="img" aria-label="Net GEX by price">
 		{#each ticks as t (t.color)}
-			<line x1="0" x2={W} y1={t.yy} y2={t.yy} stroke={t.color} opacity="0.18" />
+			<line x1="0" x2={W} y1={t.yy} y2={t.yy} style:stroke={t.color} opacity="0.2" />
 		{/each}
 		{#each rows as d (d.strike)}
 			<rect
+				class="bar"
+				class:pos={d.net >= 0}
+				class:neg={d.net < 0}
 				x={GUTTER}
 				y={(y(d.strike) ?? 0) - rowH / 2}
 				width={x(Math.abs(d.net))}
 				height={rowH}
-				fill={d.net >= 0 ? '#22c55e' : '#ef4444'}
-				opacity="0.8"
 			/>
 		{/each}
 	</svg>
@@ -88,10 +89,19 @@
 		left: 8px;
 		font-size: 0.62rem;
 		letter-spacing: 0.08em;
-		color: #6b7280;
+		color: var(--text-lo);
 		font-weight: 700;
 	}
 	svg {
 		display: block;
+	}
+	.bar {
+		opacity: 0.8;
+	}
+	.bar.pos {
+		fill: var(--up);
+	}
+	.bar.neg {
+		fill: var(--down);
 	}
 </style>

@@ -28,30 +28,31 @@
 
 <style>
 	.panel {
-		background: #111827;
-		border: 1px solid #1f2937;
-		border-radius: 12px;
-		padding: 0.9rem 1rem;
+		padding: 0.95rem 1.1rem;
 	}
 	header {
 		display: flex;
 		justify-content: space-between;
 		align-items: baseline;
-		margin-bottom: 0.5rem;
+		margin-bottom: 0.6rem;
 	}
 	h2 {
 		margin: 0;
-		font-size: 0.95rem;
+		font-size: 0.72rem;
+		text-transform: uppercase;
+		letter-spacing: 0.1em;
+		color: var(--text-lo);
+		font-weight: 700;
 	}
 	.hint {
 		font-size: 0.72rem;
-		color: #6b7280;
+		color: var(--text-lo);
 	}
 	.canvas-wrap {
 		width: 100%;
 		height: 340px;
-		border-radius: 8px;
+		border-radius: var(--r-sm);
 		overflow: hidden;
-		background: radial-gradient(circle at 50% 30%, #0f1626 0%, #0b0f17 70%);
+		background: radial-gradient(circle at 50% 25%, #0d1424 0%, var(--bg-0) 72%);
 	}
 </style>

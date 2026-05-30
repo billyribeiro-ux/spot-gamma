@@ -53,9 +53,9 @@
 	<T.Mesh position={[b.x, b.h / 2, 0]}>
 		<T.BoxGeometry args={[model.barW, b.h, 2]} />
 		<T.MeshStandardMaterial
-			color={b.net >= 0 ? '#22c55e' : '#ef4444'}
-			emissive={b.net >= 0 ? '#065f46' : '#7f1d1d'}
-			emissiveIntensity={0.28}
+			color={b.net >= 0 ? '#2ed390' : '#ff5269'}
+			emissive={b.net >= 0 ? '#0c6b4a' : '#7d1f2b'}
+			emissiveIntensity={0.3}
 			metalness={0.15}
 			roughness={0.5}
 		/>

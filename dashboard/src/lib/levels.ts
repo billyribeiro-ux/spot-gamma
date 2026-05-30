@@ -20,13 +20,13 @@ export interface LevelDef {
 
 // Priority order — when two levels coincide, the earlier one wins.
 export const LEVELS: LevelDef[] = [
-	{ key: 'spot', label: 'Spot', color: '#e5e7eb', pick: (l) => l.spot },
-	{ key: 'call_wall', label: 'Call Wall', color: '#22c55e', pick: (l) => l.call_wall },
-	{ key: 'put_wall', label: 'Put Wall', color: '#ef4444', pick: (l) => l.put_wall },
-	{ key: 'gamma_flip', label: 'Gamma Flip', color: '#f59e0b', pick: (l) => l.zero_gamma },
-	{ key: 'vol_trigger', label: 'Vol Trigger', color: '#a855f7', pick: (l) => l.volatility_trigger },
-	{ key: 'abs_gamma', label: 'Abs Gamma', color: '#06b6d4', pick: (l) => l.absolute_gamma },
-	{ key: 'hedge_wall', label: 'Hedge Wall', color: '#fb923c', pick: (l) => l.hedge_wall }
+	{ key: 'spot', label: 'Spot', color: '#f3f6fc', pick: (l) => l.spot },
+	{ key: 'call_wall', label: 'Call Wall', color: '#2ed390', pick: (l) => l.call_wall },
+	{ key: 'put_wall', label: 'Put Wall', color: '#ff5269', pick: (l) => l.put_wall },
+	{ key: 'gamma_flip', label: 'Gamma Flip', color: '#f5b14c', pick: (l) => l.zero_gamma },
+	{ key: 'vol_trigger', label: 'Vol Trigger', color: '#b487ff', pick: (l) => l.volatility_trigger },
+	{ key: 'abs_gamma', label: 'Abs Gamma', color: '#36c7e0', pick: (l) => l.absolute_gamma },
+	{ key: 'hedge_wall', label: 'Hedge Wall', color: '#ff9d4d', pick: (l) => l.hedge_wall }
 ];
 
 export type Visibility = Record<LevelKey, boolean>;

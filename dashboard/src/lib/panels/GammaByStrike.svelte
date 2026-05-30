@@ -85,21 +85,22 @@
 		<svg viewBox="0 0 {W} {height}" width="100%" height={height} role="img" aria-label="Net gamma by strike">
 			<!-- guide lines -->
 			{#each guides as g (g.label)}
-				<line x1={M.left} x2={W - M.right} y1={g.yPos} y2={g.yPos} stroke={g.color} stroke-dasharray="3 3" opacity="0.5" />
-				<text x={W - M.right} y={(g.yPos ?? 0) - 2} fill={g.color} font-size="9" text-anchor="end">{g.label}</text>
+				<line class="guide" x1={M.left} x2={W - M.right} y1={g.yPos} y2={g.yPos} style:stroke={g.color} />
+				<text x={W - M.right} y={(g.yPos ?? 0) - 2} style:fill={g.color} font-size="9" text-anchor="end">{g.label}</text>
 			{/each}
 			<!-- zero axis -->
-			<line x1={zeroX} x2={zeroX} y1={M.top} y2={height - M.bottom} stroke="#475569" />
+			<line class="axis" x1={zeroX} x2={zeroX} y1={M.top} y2={height - M.bottom} />
 			<!-- bars -->
 			{#each rows as d (d.strike)}
 				{@const w = Math.abs(x(d.net) - zeroX)}
 				<rect
+					class="bar"
+					class:pos={d.net >= 0}
+					class:neg={d.net < 0}
 					x={d.net >= 0 ? zeroX : zeroX - w}
 					y={y(d.strike)}
 					width={w}
 					height={y.bandwidth()}
-					fill={d.net >= 0 ? '#22c55e' : '#ef4444'}
-					opacity="0.85"
 				>
 					<title>{d.strike.toLocaleString()} · {formatGex(d.net)}</title>
 				</rect>
@@ -107,14 +108,14 @@
 			<!-- strike labels (every Nth to avoid crowding) -->
 			{#each rows as d, i (d.strike)}
 				{#if i % Math.ceil(rows.length / 18) === 0}
-					<text x={M.left - 6} y={(y(d.strike) ?? 0) + y.bandwidth()} fill="#6b7280" font-size="9" text-anchor="end">
+					<text class="tick" x={M.left - 6} y={(y(d.strike) ?? 0) + y.bandwidth()} font-size="9" text-anchor="end">
 						{d.strike.toLocaleString()}
 					</text>
 				{/if}
 			{/each}
 			<!-- x ticks -->
 			{#each x.ticks(5) as t (t)}
-				<text x={x(t)} y={height - 10} fill="#6b7280" font-size="9" text-anchor="middle">{formatGex(t)}</text>
+				<text class="tick" x={x(t)} y={height - 10} font-size="9" text-anchor="middle">{formatGex(t)}</text>
 			{/each}
 		</svg>
 	{/if}
@@ -122,24 +123,25 @@
 
 <style>
 	.panel {
-		background: #111827;
-		border: 1px solid #1f2937;
-		border-radius: 12px;
-		padding: 0.9rem 1rem;
+		padding: 0.95rem 1.1rem;
 	}
 	header {
 		display: flex;
 		justify-content: space-between;
 		align-items: center;
-		margin-bottom: 0.5rem;
+		margin-bottom: 0.6rem;
 	}
 	h2 {
 		margin: 0;
-		font-size: 0.95rem;
+		font-size: 0.72rem;
+		text-transform: uppercase;
+		letter-spacing: 0.1em;
+		color: var(--text-lo);
+		font-weight: 700;
 	}
 	.legend {
 		font-size: 0.72rem;
-		color: #9ca3af;
+		color: var(--text-lo);
 		display: flex;
 		align-items: center;
 	}
@@ -151,16 +153,39 @@
 		margin-right: 3px;
 	}
 	.legend .call {
-		background: #22c55e;
+		background: var(--up);
 	}
 	.legend .put {
-		background: #ef4444;
+		background: var(--down);
 	}
 	.empty {
-		color: #6b7280;
+		color: var(--text-lo);
 		font-size: 0.85rem;
 	}
 	svg {
 		display: block;
+	}
+	.bar {
+		opacity: 0.85;
+		transition: opacity var(--dur-1);
+	}
+	.bar.pos {
+		fill: var(--up);
+	}
+	.bar.neg {
+		fill: var(--down);
+	}
+	.bar:hover {
+		opacity: 1;
+	}
+	.guide {
+		stroke-dasharray: 3 3;
+		opacity: 0.45;
+	}
+	.axis {
+		stroke: var(--border-strong);
+	}
+	.tick {
+		fill: var(--text-lo);
 	}
 </style>

@@ -115,13 +115,23 @@
 
 <style>
 	.card {
-		background: #111827;
-		border: 1px solid #1f2937;
-		border-radius: 12px;
-		padding: 1rem 1.25rem;
+		background: linear-gradient(180deg, var(--surface-1), var(--bg-1));
+		border: 1px solid var(--border);
+		border-radius: var(--r-md);
+		padding: 1rem 1.2rem;
+		box-shadow: var(--shadow-1);
+		transition:
+			border-color var(--dur-1),
+			box-shadow var(--dur-2),
+			transform var(--dur-2);
+	}
+	.card:hover {
+		border-color: var(--border-strong);
+		transform: translateY(-1px);
 	}
 	.card.active {
-		border-color: #2563eb;
+		border-color: color-mix(in oklab, var(--accent) 55%, transparent);
+		box-shadow: 0 0 0 1px var(--accent-dim), var(--shadow-2);
 	}
 	.head {
 		display: flex;
@@ -137,78 +147,86 @@
 		width: 9px;
 		height: 9px;
 		border-radius: 50%;
-		background: #4b5563;
+		background: var(--text-faint);
 	}
 	.dot.on {
-		background: #22c55e;
+		background: var(--up);
+		box-shadow: 0 0 8px var(--up);
 	}
 	.label {
-		font-weight: 600;
+		font-weight: 700;
 	}
 	.kind {
-		font-size: 0.62rem;
+		font-size: 0.6rem;
 		text-transform: uppercase;
-		letter-spacing: 0.05em;
-		padding: 0.1rem 0.4rem;
-		border-radius: 4px;
-		color: #0b0f17;
-		font-weight: 700;
+		letter-spacing: 0.06em;
+		padding: 0.1rem 0.45rem;
+		border-radius: var(--r-pill);
+		color: var(--bg-0);
+		font-weight: 800;
 	}
 	.badge-active {
-		font-size: 0.62rem;
-		font-weight: 700;
-		color: #93c5fd;
-		letter-spacing: 0.08em;
+		font-size: 0.6rem;
+		font-weight: 800;
+		color: var(--accent);
+		letter-spacing: 0.1em;
 	}
 	.notes {
-		color: #9ca3af;
+		color: var(--text-mid);
 		font-size: 0.82rem;
-		margin: 0.5rem 0 0.75rem;
+		line-height: 1.45;
+		margin: 0.5rem 0 0.85rem;
 	}
 	.nokey {
-		color: #6b7280;
+		color: var(--text-lo);
 		font-size: 0.82rem;
-		margin: 0 0 0.75rem;
+		margin: 0 0 0.85rem;
 	}
 	.fields {
 		display: flex;
 		flex-direction: column;
 		gap: 0.6rem;
-		margin-bottom: 0.75rem;
+		margin-bottom: 0.85rem;
 	}
 	label {
 		display: flex;
 		flex-direction: column;
-		gap: 0.25rem;
+		gap: 0.3rem;
 	}
 	.fl {
-		font-size: 0.75rem;
-		color: #9ca3af;
+		font-size: 0.74rem;
+		color: var(--text-mid);
 	}
 	.fl em {
-		color: #6b7280;
+		color: var(--text-lo);
 		font-style: normal;
 	}
 	.saved {
-		color: #4ade80;
+		color: var(--up);
 		margin-left: 0.4rem;
-		font-size: 0.68rem;
+		font-size: 0.66rem;
+		font-weight: 700;
 	}
 	.saved.env {
-		color: #fbbf24;
+		color: var(--gold);
 	}
 	input {
-		background: #0b0f17;
-		border: 1px solid #374151;
-		border-radius: 6px;
-		padding: 0.45rem 0.6rem;
-		color: #e5e7eb;
+		background: var(--bg-0);
+		border: 1px solid var(--border);
+		border-radius: var(--r-sm);
+		padding: 0.5rem 0.65rem;
+		color: var(--text-hi);
 		font-size: 0.85rem;
-		font-family: ui-monospace, monospace;
+		font-family: var(--font-mono);
+		transition: border-color var(--dur-1);
+	}
+	input::placeholder {
+		color: var(--text-faint);
 	}
 	input:focus {
 		outline: none;
-		border-color: #2563eb;
+		border-color: var(--accent);
+		box-shadow: 0 0 0 3px var(--accent-dim);
 	}
 	.actions {
 		display: flex;
@@ -216,26 +234,37 @@
 		flex-wrap: wrap;
 	}
 	button {
-		border: 1px solid #374151;
-		background: #1f2937;
-		color: #e5e7eb;
-		border-radius: 6px;
-		padding: 0.4rem 0.9rem;
-		font-size: 0.82rem;
-		font-weight: 600;
+		border: 1px solid var(--border-strong);
+		background: var(--surface-2);
+		color: var(--text-hi);
+		border-radius: var(--r-sm);
+		padding: 0.42rem 0.95rem;
+		font-size: 0.8rem;
+		font-weight: 700;
 		cursor: pointer;
+		transition:
+			border-color var(--dur-1),
+			background var(--dur-1),
+			transform var(--dur-1);
 	}
 	button:hover:not(:disabled) {
-		border-color: #4b5563;
+		background: var(--surface-3);
+		border-color: var(--text-lo);
+	}
+	button:active:not(:disabled) {
+		transform: scale(0.97);
 	}
 	button:disabled {
-		opacity: 0.45;
+		opacity: 0.4;
 		cursor: not-allowed;
 	}
 	button.test {
-		background: #2563eb;
-		border-color: #2563eb;
+		background: var(--accent);
+		border-color: var(--accent);
 		color: #fff;
+	}
+	button.test:hover:not(:disabled) {
+		background: color-mix(in oklab, var(--accent) 85%, white);
 	}
 	button.activate {
 		background: transparent;
@@ -246,16 +275,18 @@
 		gap: 0.5rem;
 		margin-top: 0.75rem;
 		font-size: 0.82rem;
-		padding: 0.5rem 0.7rem;
-		border-radius: 6px;
+		padding: 0.55rem 0.75rem;
+		border-radius: var(--r-sm);
 	}
 	.result.ok {
-		background: rgba(34, 197, 94, 0.1);
-		color: #86efac;
+		background: var(--up-dim);
+		color: var(--up);
+		border: 1px solid color-mix(in oklab, var(--up) 35%, transparent);
 	}
 	.result.fail {
-		background: rgba(239, 68, 68, 0.1);
-		color: #fca5a5;
+		background: var(--down-dim);
+		color: var(--down);
+		border: 1px solid color-mix(in oklab, var(--down) 35%, transparent);
 	}
 	.rdot {
 		width: 8px;
@@ -263,13 +294,14 @@
 		border-radius: 50%;
 		background: currentColor;
 		flex: none;
+		box-shadow: 0 0 8px currentColor;
 	}
 	.rmsg {
 		flex: 1;
 		word-break: break-word;
 	}
 	.lat {
-		color: #6b7280;
+		color: var(--text-lo);
 		font-variant-numeric: tabular-nums;
 	}
 </style>
