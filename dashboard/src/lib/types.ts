@@ -32,3 +32,28 @@ export interface GammaLevels {
 
 export const SYMBOLS = ['SPX', 'NDX', 'SPY', 'QQQ'] as const;
 export type Symbol = (typeof SYMBOLS)[number];
+
+// Price-history (trading chart) shapes — mirrors spotgamma.history.
+export interface Bar {
+	time: number; // epoch seconds (UTC)
+	open: number;
+	high: number;
+	low: number;
+	close: number;
+	volume: number;
+}
+
+export interface History {
+	symbol: string;
+	timeframe: string;
+	bars: Bar[];
+	meta: {
+		symbol: string | null;
+		currency: string | null;
+		exchange: string | null;
+		last_price: number | null;
+	};
+}
+
+export const TIMEFRAMES = ['1m', '5m', '15m', '30m', '1h', '1D', '1W', '1M'] as const;
+export type Timeframe = (typeof TIMEFRAMES)[number];

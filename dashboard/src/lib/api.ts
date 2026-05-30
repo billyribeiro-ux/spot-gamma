@@ -1,4 +1,4 @@
-import type { GammaLevels, Symbol } from './types';
+import type { GammaLevels, History, Symbol, Timeframe } from './types';
 
 // Vite proxies /api -> FastAPI backend (see vite.config.ts).
 const BASE = '/api';
@@ -8,6 +8,15 @@ export async function fetchLevels(symbol: Symbol): Promise<GammaLevels> {
 	if (!res.ok) {
 		const detail = await res.json().catch(() => ({}));
 		throw new Error(detail.detail ?? `API ${res.status} for ${symbol}`);
+	}
+	return res.json();
+}
+
+export async function fetchHistory(symbol: Symbol, tf: Timeframe): Promise<History> {
+	const res = await fetch(`${BASE}/history/${symbol}?tf=${tf}`);
+	if (!res.ok) {
+		const detail = await res.json().catch(() => ({}));
+		throw new Error(detail.detail ?? `API ${res.status} for ${symbol} ${tf}`);
 	}
 	return res.json();
 }

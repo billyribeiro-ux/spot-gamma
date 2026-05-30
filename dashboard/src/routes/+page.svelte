@@ -3,7 +3,9 @@
 	import { SYMBOLS, type GammaLevels, type Symbol } from '$lib/types';
 	import RegimeBanner from '$lib/panels/RegimeBanner.svelte';
 	import KeyLevels from '$lib/panels/KeyLevels.svelte';
-	import GammaHeatmap from '$lib/panels/GammaHeatmap.svelte';
+	import PriceChart from '$lib/panels/PriceChart.svelte';
+	import GammaTerrain from '$lib/panels/GammaTerrain.svelte';
+	import GammaByStrike from '$lib/panels/GammaByStrike.svelte';
 	import ExpiryTable from '$lib/panels/ExpiryTable.svelte';
 	import ZeroDTE from '$lib/panels/ZeroDTE.svelte';
 	import ThinkScriptExport from '$lib/panels/ThinkScriptExport.svelte';
@@ -72,10 +74,12 @@
 		</div>
 		<RegimeBanner {levels} />
 		<div class="grid">
+			<div class="wide"><PriceChart {symbol} {levels} /></div>
+			<div class="wide"><GammaTerrain {levels} /></div>
+			<div class="wide"><GammaByStrike {levels} /></div>
 			<KeyLevels {levels} />
 			<ZeroDTE {levels} />
 			<ExpiryTable {levels} />
-			<div class="wide"><GammaHeatmap {levels} /></div>
 			<div class="wide"><ThinkScriptExport {levels} /></div>
 		</div>
 	{/if}
