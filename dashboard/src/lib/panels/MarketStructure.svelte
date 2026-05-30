@@ -45,6 +45,7 @@
 		<div class="title">
 			<h2>Market Structure</h2>
 			<span class="sub">vol · macro · dealer gamma → regime</span>
+			<a class="details" href="/market-structure">details →</a>
 		</div>
 		{#if ms}
 			<span class="vol-chip" style:color={volColor[ms.vol_regime]}>{ms.vol_regime.toUpperCase()}</span>
@@ -162,6 +163,16 @@
 	.sub {
 		font-size: 0.72rem;
 		color: var(--text-faint);
+	}
+	.details {
+		font-size: 0.7rem;
+		font-weight: 600;
+		color: var(--accent);
+		text-decoration: none;
+		transition: color var(--dur-1);
+	}
+	.details:hover {
+		color: var(--text-hi);
 	}
 	.vol-chip {
 		font-size: 0.7rem;

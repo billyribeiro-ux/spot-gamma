@@ -94,6 +94,16 @@ def build_market_structure(
     else:
         unavailable.append("breadth")
 
+    # Put/call (§7) — contrarian, z-scored sentiment proxy from chain volumes.
+    # Abstains (score 0) until the rolling history has >=20 obs; skipped
+    # (graceful) if the option-chain fetch fails.
+    pcsig, _pcerr = _safe(_put_call_signal)
+    if pcsig is not None:
+        sigs.append(pcsig)
+        inputs["put_call_ratio"] = pcsig.value
+    else:
+        unavailable.append("put_call")
+
     ratio = (vix / vix3m) if (vix and vix3m) else 1.0
     vr = S.vol_regime(vix or 20.0, ratio, vvix or 85.0)
 
@@ -124,6 +134,25 @@ def _breadth_signal():
     if sig is None:
         raise RuntimeError("insufficient breadth history")
     return sig
+
+
+def _put_call_signal():
+    """Live put/call sentiment signal from chain volumes (raises on failure).
+
+    Sums put vs call option volumes across a liquid basket, persists the daily
+    ratio to a rolling history, and z-scores it. With <20 observations the signal
+    correctly abstains (score 0) — the documented insufficient-history behavior.
+    """
+    from .feeds import fetch_put_call_volumes, update_put_call_history
+    from .putcall import PutCallStats, put_call_proxy, put_call_signal, zscore
+
+    put_vol, call_vol = fetch_put_call_volumes()
+    ratio = put_call_proxy(put_vol, call_vol)
+    if ratio is None:
+        raise RuntimeError("no put/call volume")
+    history = update_put_call_history(ratio)
+    z, pct = zscore(ratio, history)
+    return put_call_signal(PutCallStats(ratio=ratio, z=z, percentile=pct))
 
 
 def _context_signals(unavailable: list[str]) -> tuple[dict | None, dict | None, dict | None]:

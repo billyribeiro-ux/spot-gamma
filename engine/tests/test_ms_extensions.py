@@ -150,3 +150,18 @@ def test_put_call_signal_is_contrarian():
     # no history -> abstain
     na = put_call_signal(PutCallStats(ratio=0.9, z=None, percentile=None))
     assert na.score == 0.0
+
+
+def test_event_schedule_seed_loads_verified_dates():
+    # The committed events.example.json seed loads real FOMC/CPI dates and skips
+    # the _comment metadata key (feed-required dates, verified — never faked).
+    from spotgamma.marketstructure.feeds import load_scheduled_events
+
+    ev = load_scheduled_events()
+    assert ev, "expected the committed example schedule to load"
+    assert all(isinstance(k, date) for k in ev), "the _comment key must be skipped"
+    # a known verified 2026 FOMC decision day is present and flags as an event
+    fomc = date(2026, 6, 17)
+    assert fomc in ev and "FOMC" in ev[fomc]
+    er = event_risk(fomc, ev)
+    assert "FOMC" in er.events and er.label == "high"

@@ -1,0 +1,8 @@
+{
+  "_comment": "Maintained FOMC/CPI/PCE/GDP schedule for the event-risk module. These dates are FEED-REQUIRED and must be verified against primary sources (federalreserve.gov FOMC calendar, bls.gov CPI schedule, bea.gov), NEVER inferred from a formula (MARKET_STRUCTURE.md §6.3). Copy to instance/events.json (gitignored) and keep current. FOMC = Fed decision day (2nd day of meeting); CPI = BLS release day. Verified 2026-05-30 from federalreserve.gov and BLS.",
+  "2026-06-10": ["CPI"],
+  "2026-06-17": ["FOMC"],
+  "2026-09-16": ["FOMC"],
+  "2026-10-28": ["FOMC"],
+  "2026-12-09": ["FOMC"]
+}
