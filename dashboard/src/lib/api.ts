@@ -39,6 +39,23 @@ export interface MSSignal {
 	detail: string;
 }
 
+export interface MSEventRisk {
+	events: string[];
+	score: number;
+	label: 'quiet' | 'elevated' | 'high';
+}
+export interface MSSeasonality {
+	factors: string[];
+	tilt: number;
+	label: 'bullish tilt' | 'bearish tilt' | 'neutral';
+}
+export interface MSGaps {
+	today_gap_pct: number | null;
+	today_bucket: string | null;
+	today_fill_probability: number | null;
+	buckets: { bucket: string; count: number; fill_rate: number | null }[];
+}
+
 export interface MarketStructure {
 	symbol: string;
 	regime_score: number;
@@ -51,6 +68,9 @@ export interface MarketStructure {
 	divergence: boolean;
 	flip_transition_risk: boolean;
 	signals: MSSignal[];
+	event_risk: MSEventRisk | null;
+	seasonality: MSSeasonality | null;
+	gaps: MSGaps | null;
 	inputs: Record<string, number | null>;
 	unavailable: string[];
 }

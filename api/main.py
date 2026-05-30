@@ -233,6 +233,9 @@ def market_structure(symbol: str = Query(default="SPX"), source: str | None = Qu
             }
             for s in read.signals
         ],
+        "event_risk": ms.event_risk,
+        "seasonality": ms.seasonality,
+        "gaps": ms.gaps,
         "inputs": ms.inputs,
         "unavailable": unavailable,
     }

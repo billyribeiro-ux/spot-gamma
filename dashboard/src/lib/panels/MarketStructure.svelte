@@ -103,6 +103,31 @@
 			{/each}
 		</ul>
 
+		<!-- §6 context: dispersion + tilt (not part of the directional read) -->
+		<div class="context">
+			{#if ms.event_risk}
+				<span class="ctx" class:hot={ms.event_risk.label !== 'quiet'}>
+					<span class="ctx-k">EVENT</span>
+					{ms.event_risk.events.length ? ms.event_risk.events.join(' · ') : 'quiet'}
+				</span>
+			{/if}
+			{#if ms.seasonality && ms.seasonality.factors.length}
+				<span class="ctx">
+					<span class="ctx-k">SEASON</span>
+					{ms.seasonality.factors.join(' · ')}
+				</span>
+			{/if}
+			{#if ms.gaps && ms.gaps.today_gap_pct != null}
+				<span class="ctx">
+					<span class="ctx-k">GAP</span>
+					{ms.gaps.today_gap_pct >= 0 ? '+' : ''}{ms.gaps.today_gap_pct}%
+					{#if ms.gaps.today_fill_probability != null}
+						· {Math.round(ms.gaps.today_fill_probability * 100)}% fill
+					{/if}
+				</span>
+			{/if}
+		</div>
+
 		{#if ms.unavailable.length}
 			<p class="unavail">unavailable: {ms.unavailable.join(', ')}</p>
 		{/if}
@@ -274,6 +299,35 @@
 		transition:
 			left var(--dur-3) var(--ease-out),
 			width var(--dur-3) var(--ease-out);
+	}
+	.context {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.4rem;
+		margin-top: 0.85rem;
+		padding-top: 0.7rem;
+		border-top: 1px solid var(--border);
+	}
+	.ctx {
+		font-size: 0.7rem;
+		color: var(--text-mid);
+		background: var(--surface-2);
+		border: 1px solid var(--border);
+		border-radius: var(--r-pill);
+		padding: 0.15rem 0.55rem;
+		display: inline-flex;
+		align-items: center;
+		gap: 0.35rem;
+	}
+	.ctx-k {
+		font-size: 0.6rem;
+		font-weight: 700;
+		letter-spacing: 0.06em;
+		color: var(--text-lo);
+	}
+	.ctx.hot {
+		color: var(--lvl-flip);
+		border-color: color-mix(in oklab, var(--lvl-flip) 40%, transparent);
 	}
 	.unavail {
 		margin: 0.7rem 0 0;

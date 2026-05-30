@@ -101,6 +101,20 @@ def test_thinkscript_endpoint_renders_engine_study(client):
     assert "AddCloud" in body and "AssignBackgroundColor" in body and "Alert(" in body
 
 
+def _stub_heavy_feeds(monkeypatch):
+    """Stub breadth/gap fetches so MS tests are network-free (constituents + SPY)."""
+    monkeypatch.setattr(
+        "spotgamma.marketstructure.feeds.fetch_constituent_closes",
+        lambda *a, **k: {"AAA": [10.0] * 199 + [12.0], "BBB": [10.0] * 199 + [8.0]},
+    )
+    from spotgamma.marketstructure.gaps import Bar
+
+    monkeypatch.setattr(
+        "spotgamma.marketstructure.feeds.fetch_spy_bars",
+        lambda *a, **k: [Bar(100, 101, 99, 100), Bar(100.2, 101, 99.5, 100.3)],
+    )
+
+
 def test_market_structure_endpoint(client, monkeypatch):
     # Stub the external feeds so the test is network-free; sample source gives gamma.
     from spotgamma.marketstructure import read as ms_read
@@ -124,6 +138,7 @@ def test_market_structure_endpoint(client, monkeypatch):
 
     monkeypatch.setattr("spotgamma.marketstructure.fred.fetch_series", fake_series)
     monkeypatch.setattr("spotgamma.marketstructure.quotes.fetch_quote", lambda t: _Q(quotes[t]))
+    _stub_heavy_feeds(monkeypatch)
 
     resp = client.get("/market-structure?symbol=SPX")
     assert resp.status_code == 200
@@ -134,6 +149,10 @@ def test_market_structure_endpoint(client, monkeypatch):
     assert body["gamma_available"] is True and 0.0 <= body["actionability"] <= 1.5
     keys = {s["key"] for s in body["signals"]}
     assert "vix" in keys and "credit" in keys  # core signals present
+    # §6 context present and well-formed
+    assert body["event_risk"]["label"] in {"quiet", "elevated", "high"}
+    assert body["seasonality"]["label"] in {"bullish tilt", "bearish tilt", "neutral"}
+    assert "breadth" in keys  # breadth signal wired in
 
 
 def test_market_structure_degrades_without_gamma(client, monkeypatch):
@@ -151,6 +170,7 @@ def test_market_structure_degrades_without_gamma(client, monkeypatch):
 
     monkeypatch.setattr("spotgamma.marketstructure.fred.fetch_series", lambda sid: [_Pt(series[sid])])
     monkeypatch.setattr("spotgamma.marketstructure.quotes.fetch_quote", lambda t: _Q(quotes[t]))
+    _stub_heavy_feeds(monkeypatch)
     # force the levels lookup to fail (as if the chain source were unreachable)
     import api.main as m
 
