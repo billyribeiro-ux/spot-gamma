@@ -45,16 +45,41 @@
 	let candleBounds: { lo: number; hi: number } | null = null;
 	let lastBars: CandlestickData<Time>[] = [];
 
+	// SpotGamma key levels in priority order — when two coincide (e.g. Hedge Wall
+	// on the Call Wall), the earlier one wins and the duplicate line is dropped.
+	type LevelKey =
+		| 'spot'
+		| 'call_wall'
+		| 'put_wall'
+		| 'gamma_flip'
+		| 'vol_trigger'
+		| 'abs_gamma'
+		| 'hedge_wall';
+	const LEVELS: { key: LevelKey; label: string; color: string; pick: (l: GammaLevels) => number | null }[] = [
+		{ key: 'spot', label: 'Spot', color: '#e5e7eb', pick: (l) => l.spot },
+		{ key: 'call_wall', label: 'Call Wall', color: '#22c55e', pick: (l) => l.call_wall },
+		{ key: 'put_wall', label: 'Put Wall', color: '#ef4444', pick: (l) => l.put_wall },
+		{ key: 'gamma_flip', label: 'Gamma Flip', color: '#f59e0b', pick: (l) => l.zero_gamma },
+		{ key: 'vol_trigger', label: 'Vol Trigger', color: '#a855f7', pick: (l) => l.volatility_trigger },
+		{ key: 'abs_gamma', label: 'Abs Gamma', color: '#06b6d4', pick: (l) => l.absolute_gamma },
+		{ key: 'hedge_wall', label: 'Hedge Wall', color: '#fb923c', pick: (l) => l.hedge_wall }
+	];
+	let visible = $state<Record<LevelKey, boolean>>({
+		spot: true,
+		call_wall: true,
+		put_wall: true,
+		gamma_flip: true,
+		vol_trigger: true,
+		abs_gamma: true,
+		hedge_wall: true
+	});
+
 	function recomputeLevelRange() {
-		const ps = [
-			levels.spot,
-			levels.call_wall,
-			levels.put_wall,
-			levels.zero_gamma,
-			levels.volatility_trigger,
-			levels.absolute_gamma,
-			levels.hedge_wall
-		].filter((v): v is number => v != null);
+		// Only *shown* levels expand the chart, so hiding a far wall lets the
+		// price axis zoom back to the candles.
+		const ps = LEVELS.filter((d) => visible[d.key])
+			.map((d) => d.pick(levels))
+			.filter((v): v is number => v != null);
 		levelRange = ps.length ? { min: Math.min(...ps), max: Math.max(...ps) } : null;
 	}
 
@@ -98,31 +123,28 @@
 		}
 	}
 
-	// Draw the gamma levels as labeled horizontal price lines.
+	// Draw the visible gamma levels as labeled price lines, skipping any whose
+	// price coincides with one already drawn (dedupes stacked labels).
 	function drawLevels() {
 		if (!series) return;
 		for (const pl of priceLines) series.removePriceLine(pl);
 		priceLines = [];
-		// SpotGamma-style key levels, overlaid as labeled price lines.
-		const lines: Array<[number | null, string, string]> = [
-			[levels.spot, '#e5e7eb', 'Spot'],
-			[levels.call_wall, '#22c55e', 'Call Wall'],
-			[levels.put_wall, '#ef4444', 'Put Wall'],
-			[levels.zero_gamma, '#f59e0b', 'Gamma Flip'],
-			[levels.volatility_trigger, '#a855f7', 'Vol Trigger'],
-			[levels.absolute_gamma, '#06b6d4', 'Abs Gamma'],
-			[levels.hedge_wall, '#fb923c', 'Hedge Wall']
-		];
-		for (const [price, color, title] of lines) {
+		const seen = new Set<number>();
+		for (const d of LEVELS) {
+			if (!visible[d.key]) continue;
+			const price = d.pick(levels);
 			if (price == null) continue;
+			const rounded = Math.round(price * 100) / 100;
+			if (seen.has(rounded)) continue; // coincident with a higher-priority level
+			seen.add(rounded);
 			priceLines.push(
 				series.createPriceLine({
 					price,
-					color,
-					lineWidth: title === 'Spot' ? 2 : 1,
-					lineStyle: title === 'Spot' ? LineStyle.Solid : LineStyle.Dashed,
+					color: d.color,
+					lineWidth: d.key === 'spot' ? 2 : 1,
+					lineStyle: d.key === 'spot' ? LineStyle.Solid : LineStyle.Dashed,
 					axisLabelVisible: true,
-					title
+					title: d.label
 				})
 			);
 		}
@@ -186,10 +208,13 @@
 		if (ready) load();
 	});
 
-	// Redraw level overlays + refresh the shared price domain whenever levels
-	// change. Re-setData so the autoscale re-unions the (possibly moved) walls.
+	// Redraw level overlays + refresh the shared price domain whenever the levels
+	// or their visibility change. recomputeLevelRange/drawLevels read both `levels`
+	// and `visible`, so this effect re-runs on a toggle; re-setData re-unions the
+	// autoscale so hiding a far wall lets the chart zoom back in.
 	$effect(() => {
 		void levels;
+		void visible;
 		if (!ready) return;
 		recomputeLevelRange();
 		recomputeDomain();
@@ -218,9 +243,25 @@
 			{/each}
 		</div>
 	</header>
+	<div class="legend">
+		{#each LEVELS as d (d.key)}
+			{@const present = d.pick(levels) != null}
+			<button
+				type="button"
+				class="chip"
+				class:on={visible[d.key] && present}
+				disabled={!present}
+				aria-pressed={visible[d.key] && present}
+				title={present ? `Toggle ${d.label}` : `${d.label} not available`}
+				onclick={() => (visible[d.key] = !visible[d.key])}
+			>
+				<span class="sw" style:background={d.color}></span>{d.label}
+			</button>
+		{/each}
+	</div>
 	<div class="chart-row">
 		<div class="chart" bind:this={container}></div>
-		{#if priceDomain}<GexProfile {levels} domain={priceDomain} height={CHART_H} />{/if}
+		{#if priceDomain}<GexProfile {levels} {visible} domain={priceDomain} height={CHART_H} />{/if}
 	</div>
 	{#if error}<p class="err">Chart unavailable — {error}</p>{/if}
 </section>
@@ -290,6 +331,43 @@
 		background: #2563eb;
 		color: #fff;
 		border-color: #2563eb;
+	}
+	.legend {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.3rem;
+		margin-bottom: 0.5rem;
+	}
+	.chip {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.3rem;
+		background: #0b0f17;
+		border: 1px solid #1f2937;
+		border-radius: 6px;
+		padding: 0.15rem 0.45rem;
+		font-size: 0.7rem;
+		font-weight: 600;
+		color: #6b7280;
+		cursor: pointer;
+	}
+	.chip .sw {
+		width: 9px;
+		height: 9px;
+		border-radius: 2px;
+		opacity: 0.35;
+	}
+	.chip.on {
+		color: #e5e7eb;
+		border-color: #374151;
+	}
+	.chip.on .sw {
+		opacity: 1;
+	}
+	.chip:disabled {
+		opacity: 0.35;
+		cursor: not-allowed;
+		text-decoration: line-through;
 	}
 	.chart-row {
 		display: flex;

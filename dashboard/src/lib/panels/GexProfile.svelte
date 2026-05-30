@@ -8,8 +8,17 @@
 	let {
 		levels,
 		domain,
-		height = 360
-	}: { levels: GammaLevels; domain: [number, number]; height?: number } = $props();
+		height = 360,
+		visible = {}
+	}: {
+		levels: GammaLevels;
+		domain: [number, number];
+		height?: number;
+		visible?: Record<string, boolean>;
+	} = $props();
+
+	// Only mark levels that are toggled on in the chart (default: shown).
+	const show = (key: string) => visible[key] !== false;
 
 	const W = 104;
 	// Insets roughly match lightweight-charts' plot area (time axis reserved at the
@@ -33,19 +42,19 @@
 		rows.length ? Math.max(1.5, ((height - TOP - BOTTOM) / rows.length) * 0.82) : 2
 	);
 
-	// Mark the key levels with a small colored tick on the price axis.
+	// Mark the (visible) key levels with a small colored tick on the price axis.
 	const ticks = $derived(
 		(
 			[
-				[levels.spot, '#e5e7eb'],
-				[levels.call_wall, '#22c55e'],
-				[levels.put_wall, '#ef4444'],
-				[levels.absolute_gamma, '#06b6d4'],
-				[levels.hedge_wall, '#fb923c']
-			] as Array<[number | null, string]>
+				['spot', levels.spot, '#e5e7eb'],
+				['call_wall', levels.call_wall, '#22c55e'],
+				['put_wall', levels.put_wall, '#ef4444'],
+				['abs_gamma', levels.absolute_gamma, '#06b6d4'],
+				['hedge_wall', levels.hedge_wall, '#fb923c']
+			] as Array<[string, number | null, string]>
 		)
-			.filter(([p]) => p != null && (p as number) >= domain[0] && (p as number) <= domain[1])
-			.map(([p, color]) => ({ yy: y(p as number), color }))
+			.filter(([key, p]) => show(key) && p != null && (p as number) >= domain[0] && (p as number) <= domain[1])
+			.map(([, p, color]) => ({ yy: y(p as number), color }))
 	);
 </script>
 
