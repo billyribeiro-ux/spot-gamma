@@ -40,7 +40,7 @@ def _contract_gamma(c: OptionContract, snap: ChainSnapshot, spot: float) -> floa
     if at_snapshot and c.gamma is not None:
         return c.gamma
     iv = c.implied_volatility if c.implied_volatility else _FALLBACK_IV
-    return bs_gamma(spot, c.strike, snap.dte(c.expiration), iv, snap.risk_free_rate)
+    return bs_gamma(spot, c.strike, snap.dte(c.expiration), iv, snap.risk_free_rate, snap.dividend_yield)
 
 
 def contract_gex(c: OptionContract, snap: ChainSnapshot, spot: float | None = None) -> float:

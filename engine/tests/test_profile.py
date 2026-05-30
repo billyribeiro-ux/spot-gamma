@@ -56,22 +56,28 @@ def test_find_zero_gamma_guards_flat_segment():
     assert zg is not None and 100.0 < zg <= 101.0
 
 
-def test_scalar_and_vectorized_profiles_agree():
-    # The two code paths (below/above the vectorize threshold) must produce the
-    # same curve on the same chain.
-    import spotgamma.profile as P
+def test_profile_matches_standalone_evaluator():
+    # The profile grid and the standalone net_gex evaluator share one basis.
+    from spotgamma.profile import make_net_gex_fn
 
     snap = SampleSource().get_chain("SPX")
-    orig = P._VECTORIZE_THRESHOLD
-    try:
-        P._VECTORIZE_THRESHOLD = 10**9  # force scalar
-        scalar = P.gamma_profile(snap)
-        P._VECTORIZE_THRESHOLD = 0  # force vectorized
-        vector = P.gamma_profile(snap)
-    finally:
-        P._VECTORIZE_THRESHOLD = orig
-    assert len(scalar) == len(vector)
-    for a, b in zip(scalar, vector, strict=True):
-        assert abs(a.spot - b.spot) < 1e-9
-        # both paths drop zero-OI contracts and use the same BS gamma
-        assert abs(a.net_gex - b.net_gex) < 1e-6 * (abs(a.net_gex) + 1.0)
+    net_at = make_net_gex_fn(snap)
+    profile = gamma_profile(snap, net_fn=net_at)
+    for p in profile:
+        assert abs(p.net_gex - net_at(p.spot)) < 1e-6 * (abs(p.net_gex) + 1.0)
+
+
+def test_bisection_refines_zero_gamma_onto_the_real_curve():
+    # With a net_fn, the returned crossing should sit essentially on net=0,
+    # tighter than the linear grid estimate.
+    from spotgamma.profile import make_net_gex_fn
+
+    snap = SampleSource().get_chain("SPX")
+    net_at = make_net_gex_fn(snap)
+    profile = gamma_profile(snap, net_fn=net_at)
+    linear = find_zero_gamma(profile, snap.spot)
+    refined = find_zero_gamma(profile, snap.spot, net_fn=net_at)
+    assert linear is not None and refined is not None
+    # the refined crossing evaluates much closer to zero than the linear estimate
+    assert abs(net_at(refined)) <= abs(net_at(linear)) + 1e-6
+    assert abs(net_at(refined)) < 1e-3 * abs(net_at(snap.spot) or 1.0)

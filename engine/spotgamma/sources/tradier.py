@@ -15,6 +15,7 @@ import os
 from datetime import UTC, datetime
 
 from ..models import ChainSnapshot, OptionContract, OptionType
+from ._normalize import normalize_iv
 from .base import ChainSource
 
 _PROD = "https://api.tradier.com/v1"
@@ -82,7 +83,7 @@ class TradierSource(ChainSource):
                         open_interest=int(o.get("open_interest") or 0),
                         volume=int(o.get("volume") or 0),
                         gamma=greeks.get("gamma"),
-                        implied_volatility=greeks.get("mid_iv"),
+                        implied_volatility=normalize_iv(greeks.get("mid_iv")),
                         bid=o.get("bid"),
                         ask=o.get("ask"),
                     )

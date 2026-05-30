@@ -68,6 +68,7 @@ class ChainSnapshot(BaseModel):
     spot: float = Field(gt=0)
     timestamp: datetime
     risk_free_rate: float = 0.04
+    dividend_yield: float = 0.0  # continuous; carry term in the BS gamma fallback/profile
     contracts: list[OptionContract]
 
     @property

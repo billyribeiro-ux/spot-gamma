@@ -52,7 +52,23 @@ delta-neutral for a 1% move. **+$1B net GEX** ≈ dealers buy/sell ~$1B per 1%.
 - **Profile** — recompute every contract's gamma via Black-Scholes across a grid
   of hypothetical spot levels (default ±15%, 121 steps) and sum to a net-GEX
   curve. Required to locate **Zero Gamma** honestly, because dealer gamma changes
-  as price moves. Implemented in `engine/spotgamma/profile.py`.
+  as price moves. Implemented in `engine/spotgamma/profile.py`, with one
+  consistent BS basis at every grid point (no source-gamma shortcut mid-curve).
+
+### Numerical details
+
+- **Carry-adjusted (Merton) gamma** — the BS fallback/profile use a continuous
+  dividend yield `q`: drift is `(r − q)` in `d1` and gamma carries the `e^{−qT}`
+  factor. `q` defaults to 0 (plain BS); set `ChainSnapshot.dividend_yield` for
+  index carry.
+- **Zero Gamma refinement** — the grid gives a linear estimate (~0.25% resolution
+  at 121 steps); the chosen crossing is then refined by **bisection** on the real
+  net-GEX curve, so the level isn't capped by grid spacing.
+- **IV normalization** — vendors disagree on units (Schwab/ORATS emit percent
+  points, others decimals); every adapter routes IV through `normalize_iv`, which
+  converts percent→decimal heuristically and drops sentinels/NaN.
+- **ET session calendar** — DTE and 0DTE are anchored to the US/Eastern trading
+  date, not UTC, to avoid an after-hours off-by-one.
 
 Black-Scholes gamma (`engine/spotgamma/greeks.py`) is also the **fallback** when a
 source provides IV but not gamma. Gamma is identical for a call and put at the

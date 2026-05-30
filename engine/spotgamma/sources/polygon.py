@@ -15,6 +15,7 @@ import os
 from datetime import UTC, datetime
 
 from ..models import ChainSnapshot, OptionContract, OptionType
+from ._normalize import normalize_iv
 from .base import ChainSource
 
 _BASE = "https://api.polygon.io"
@@ -59,7 +60,7 @@ def parse_polygon_results(results: list[dict], symbol: str, spot: float) -> list
                 open_interest=int(r.get("open_interest") or 0),
                 volume=int(day.get("volume") or 0),
                 gamma=greeks.get("gamma"),
-                implied_volatility=r.get("implied_volatility"),
+                implied_volatility=normalize_iv(r.get("implied_volatility")),
             )
         )
     return out

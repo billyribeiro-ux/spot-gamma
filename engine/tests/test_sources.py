@@ -256,3 +256,15 @@ def test_parse_occ_symbol_rejects_malformed():
         parse_occ_symbol("GARBAGE")
     with pytest.raises(ValueError):
         parse_occ_symbol("SPX260618X00200000")  # 'X' is not a valid right
+
+
+def test_normalize_iv_heuristic():
+    from spotgamma.sources._normalize import normalize_iv
+
+    assert normalize_iv(0.16) == 0.16  # already decimal
+    assert normalize_iv(16.0) == 0.16  # percent points -> /100
+    assert normalize_iv(None) is None
+    assert normalize_iv(-999.0) is None  # sentinel
+    assert normalize_iv(0) is None
+    assert normalize_iv("NaN") is None  # non-numeric string
+    assert normalize_iv(2.5) == 2.5  # 250% stays decimal (below the % threshold)

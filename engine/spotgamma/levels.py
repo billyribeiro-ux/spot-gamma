@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from .gex import aggregate_all
 from .models import ChainSnapshot, GammaLevels, StrikeGamma
-from .profile import find_zero_gamma, gamma_profile
+from .profile import find_zero_gamma, gamma_profile, make_net_gex_fn
 
 
 def _call_wall(strikes: list[StrikeGamma], spot: float) -> float | None:
@@ -100,8 +100,11 @@ def compute_levels(
     if not by_strike:
         return _empty_levels(snap)
 
-    profile = gamma_profile(snap, width=profile_width, steps=profile_steps)
-    zero_gamma = find_zero_gamma(profile, snap.spot)
+    # Build the net-GEX evaluator once; the profile grid and the bisection
+    # refinement of Zero Gamma share the exact same Black-Scholes basis.
+    net_fn = make_net_gex_fn(snap)
+    profile = gamma_profile(snap, width=profile_width, steps=profile_steps, net_fn=net_fn)
+    zero_gamma = find_zero_gamma(profile, snap.spot, net_fn=net_fn)
 
     positive_nodes = sorted((s for s in by_strike if s.net_gex > 0), key=lambda s: s.net_gex, reverse=True)
     negative_nodes = sorted((s for s in by_strike if s.net_gex < 0), key=lambda s: s.net_gex)

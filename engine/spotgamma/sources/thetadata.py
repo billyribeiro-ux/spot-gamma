@@ -24,6 +24,7 @@ import os
 from datetime import UTC, date, datetime
 
 from ..models import ChainSnapshot, OptionContract, OptionType
+from ._normalize import normalize_iv
 from .base import ChainSource
 
 _DEFAULT_BASE = "http://127.0.0.1:25510"
@@ -110,7 +111,7 @@ def parse_theta_bulk(greeks_payload: dict, oi_payload: dict, symbol: str) -> Cha
                 expiration=expiration,
                 open_interest=oi_by_contract.get(_contract_key(c), 0),
                 gamma=gamma if gamma else None,
-                implied_volatility=iv if iv else None,
+                implied_volatility=normalize_iv(iv),
             )
         )
     if not spot:

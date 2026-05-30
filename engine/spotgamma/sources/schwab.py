@@ -19,6 +19,7 @@ import os
 from datetime import UTC, datetime
 
 from ..models import ChainSnapshot, OptionContract, OptionType
+from ._normalize import normalize_iv
 from .base import ChainSource
 
 _BASE = "https://api.schwabapi.com/marketdata/v1"
@@ -48,7 +49,6 @@ def _emit(exp_map: dict, opt_type: OptionType, out: list[OptionContract]) -> Non
         expiration = datetime.strptime(exp_key.split(":")[0], "%Y-%m-%d").date()
         for _strike, contracts in strikes.items():
             for c in contracts:
-                iv = _clean(c.get("volatility"))
                 out.append(
                     OptionContract(
                         option_type=opt_type,
@@ -57,7 +57,9 @@ def _emit(exp_map: dict, opt_type: OptionType, out: list[OptionContract]) -> Non
                         open_interest=int(c.get("openInterest") or 0),
                         volume=int(c.get("totalVolume") or 0),
                         gamma=_clean(c.get("gamma")),
-                        implied_volatility=(iv / 100.0 if iv is not None else None),
+                        # Schwab IV is percent points; normalize_iv handles the /100
+                        # and drops the -999 sentinel.
+                        implied_volatility=normalize_iv(c.get("volatility")),
                         bid=c.get("bid"),
                         ask=c.get("ask"),
                     )
