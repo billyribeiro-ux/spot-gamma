@@ -117,9 +117,13 @@ Sources: `sample`, `cboe`, `tradier`, `schwab`, `polygon`, `thetadata`, `tastytr
 
 ## Status
 
-MVP covering all four agreed phases (methodology, engine, API+dashboard,
-ThinkScript). The broader Market-Structure system (VIX, yields, DXY, breadth,
-seasonality) is out of scope here and structured to extend later.
+All four agreed phases complete: methodology, engine, API+dashboard, and the
+**Thinkorswim study** (lines, gamma walls, flip-zone cloud, color-coded regime
+background, dashboard labels, and alert conditions — via CLI, the
+`GET /thinkscript/{symbol}` API, and the dashboard panel). The broader
+**Market-Structure system** (VIX, yields, DXY, breadth, dealer positioning,
+vol regime, gaps, seasonality, econ-calendar risk) is Phase 5 — **research-gated**,
+methodology doc before code; see `docs/METHODOLOGY.md` §10.
 
 > Sample fixtures are synthetic and **not market data**. Spot gamma is an
 > inference, not certainty — see the disclaimer in the methodology doc.

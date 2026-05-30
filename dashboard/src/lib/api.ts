@@ -23,6 +23,13 @@ export async function fetchHistory(symbol: Symbol, tf: Timeframe): Promise<Histo
 	return res.json();
 }
 
+/** Engine-rendered ThinkScript study (single source of truth with the CLI). */
+export async function fetchThinkScript(symbol: Symbol): Promise<string> {
+	const res = await fetch(`${BASE}/thinkscript/${symbol}`);
+	if (!res.ok) throw new Error(`API ${res.status} for ${symbol} thinkscript`);
+	return res.text();
+}
+
 /** Format a large dollar gamma number compactly, e.g. 3.78e8 -> "$378M". */
 export function formatGex(value: number): string {
 	const abs = Math.abs(value);

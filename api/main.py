@@ -30,7 +30,9 @@ from typing import Generic, TypeVar
 
 from fastapi import APIRouter, Depends, FastAPI, Header, HTTPException, Query, status
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import PlainTextResponse
 from pydantic import BaseModel
+from spotgamma.export_thinkscript import render_thinkscript
 from spotgamma.history import TIMEFRAMES, fetch_history
 from spotgamma.levels import compute_levels
 from spotgamma.models import GammaLevels
@@ -168,6 +170,12 @@ def history(symbol: str, tf: str = Query(default="5m")) -> dict:
         raise HTTPException(status_code=502, detail=f"history error: {e}") from e
     _history_cache.put(key, data)
     return data
+
+
+@app.get("/thinkscript/{symbol}", response_class=PlainTextResponse)
+def thinkscript(symbol: str, source: str | None = Query(default=None)) -> str:
+    """Engine-rendered Thinkorswim study (single source of truth with the CLI)."""
+    return render_thinkscript(_get_levels(symbol, _resolved_source(source)))
 
 
 # --- Connections hub ------------------------------------------------------

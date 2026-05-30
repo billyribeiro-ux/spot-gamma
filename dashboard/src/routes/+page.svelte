@@ -157,7 +157,7 @@
 			<div in:fly={enter(5)}><KeyLevels {levels} /></div>
 			<div in:fly={enter(6)}><ZeroDTE {levels} /></div>
 			<div in:fly={enter(7)}><ExpiryTable {levels} /></div>
-			<div class="wide" in:fly={enter(8)}><ThinkScriptExport {levels} /></div>
+			<div class="wide" in:fly={enter(8)}><ThinkScriptExport {symbol} {levels} /></div>
 		</div>
 	{/if}
 </main>

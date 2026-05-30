@@ -68,9 +68,18 @@ def test_top_nodes_ordered():
 def test_thinkscript_export_contains_levels():
     levels = compute_levels(SampleSource().get_chain("SPX"))
     script = render_thinkscript(levels)
+    # all six levels are emitted as numeric inputs
     assert f"input callWall = {levels.call_wall:.2f};" in script
     assert f"input putWall = {levels.put_wall:.2f};" in script
-    assert "AddLabel" in script and "Zero Gamma" in script
+    assert "input absGamma" in script and "input hedgeWall" in script
+    # Phase 4 features: labels, flip-zone cloud, regime background, alerts
+    assert "AddLabel" in script and "Gamma Flip" in script
+    assert "AddCloud" in script  # flip zone
+    assert "AssignBackgroundColor" in script  # color-coded regime state
+    assert "Alert(" in script and "Crosses(" in script  # alert conditions
+    # colors aligned with the dashboard: call wall green, put wall red
+    assert "CallWallLine.SetDefaultColor(CreateColor(46, 211, 144))" in script
+    assert "PutWallLine.SetDefaultColor(CreateColor(255, 82, 105))" in script
 
 
 def _snap(contracts, spot=100.0):

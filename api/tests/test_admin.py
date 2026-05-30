@@ -88,3 +88,14 @@ def test_admin_token_gate(tmp_path, monkeypatch):
     finally:
         monkeypatch.delenv("SPOTGAMMA_ADMIN_TOKEN", raising=False)
         importlib.reload(m)
+
+
+def test_thinkscript_endpoint_renders_engine_study(client):
+    # The /thinkscript endpoint returns the engine-rendered study (sample source),
+    # i.e. the same Phase-4 features as the CLI: cloud, regime bg, alerts.
+    r = client.get("/thinkscript/SPX")
+    assert r.status_code == 200
+    assert r.headers["content-type"].startswith("text/plain")
+    body = r.text
+    assert "input callWall" in body and "input hedgeWall" in body
+    assert "AddCloud" in body and "AssignBackgroundColor" in body and "Alert(" in body

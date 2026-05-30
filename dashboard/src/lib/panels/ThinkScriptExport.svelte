@@ -1,25 +1,26 @@
 <script lang="ts">
-	import type { GammaLevels } from '$lib/types';
+	import { fetchThinkScript } from '$lib/api';
+	import type { GammaLevels, Symbol } from '$lib/types';
 
-	let { levels }: { levels: GammaLevels } = $props();
+	// Re-fetch when symbol changes (or levels refresh). The engine renders the
+	// study so the dashboard copy is byte-identical to the CLI output — one
+	// source of truth.
+	let { symbol, levels }: { symbol: Symbol; levels: GammaLevels } = $props();
 
-	function fmt(v: number | null): string {
-		return v === null ? '0' : v.toFixed(2);
-	}
+	let script = $state('');
+	let error = $state(false);
 
-	// Mirror engine/spotgamma/export_thinkscript.py so the dashboard's copy
-	// matches the CLI-generated study.
-	const script = $derived(
-		`# Spot Gamma Levels - ${levels.symbol} (regime: ${levels.regime})\n` +
-			`input zeroGamma = ${fmt(levels.zero_gamma)};\n` +
-			`input callWall = ${fmt(levels.call_wall)};\n` +
-			`input putWall = ${fmt(levels.put_wall)};\n` +
-			`input volTrigger = ${fmt(levels.volatility_trigger)};\n\n` +
-			`plot ZeroGammaLine = zeroGamma;\n` +
-			`plot CallWallLine = callWall;\n` +
-			`plot PutWallLine = putWall;\n` +
-			`plot VolTriggerLine = volTrigger;`
-	);
+	$effect(() => {
+		const sym = symbol;
+		void levels; // refresh when the snapshot updates
+		let alive = true;
+		fetchThinkScript(sym)
+			.then((s) => alive && ((script = s), (error = false)))
+			.catch(() => alive && (error = true));
+		return () => {
+			alive = false;
+		};
+	});
 
 	let copied = $state(false);
 	async function copy() {
@@ -29,54 +30,93 @@
 	}
 </script>
 
-<div class="card">
+<div class="panel card">
 	<div class="head">
-		<h2>ThinkScript Export</h2>
-		<button onclick={copy}>{copied ? 'Copied!' : 'Copy'}</button>
+		<div class="title">
+			<h2>ThinkScript Export</h2>
+			<span class="sub">levels · flip zone · regime background · alerts</span>
+		</div>
+		<button class:done={copied} disabled={!script} onclick={copy}>{copied ? '✓ Copied' : 'Copy'}</button>
 	</div>
-	<pre>{script}</pre>
+	{#if error}
+		<p class="err">Couldn't render the study.</p>
+	{:else}
+		<pre class="mono">{script}</pre>
+	{/if}
 </div>
 
 <style>
 	.card {
-		background: linear-gradient(180deg, var(--surface-1), var(--bg-1));
-		border: 1px solid var(--border);
-		border-radius: 12px;
-		padding: 1rem 1.25rem;
+		padding: 1rem 1.2rem;
 	}
 	.head {
 		display: flex;
 		justify-content: space-between;
 		align-items: center;
-		margin-bottom: 0.5rem;
+		gap: 1rem;
+		margin-bottom: 0.7rem;
+	}
+	.title {
+		display: flex;
+		align-items: baseline;
+		gap: 0.6rem;
+		flex-wrap: wrap;
 	}
 	h2 {
 		margin: 0;
-		font-size: 0.8rem;
+		font-size: 0.72rem;
 		text-transform: uppercase;
-		letter-spacing: 0.08em;
+		letter-spacing: 0.1em;
 		color: var(--text-lo);
+		font-weight: 700;
+	}
+	.sub {
+		font-size: 0.72rem;
+		color: var(--text-faint);
 	}
 	button {
-		background: #2563eb;
+		background: var(--accent);
 		color: #fff;
-		border: none;
-		border-radius: 6px;
-		padding: 0.3rem 0.8rem;
-		font-size: 0.8rem;
+		border: 1px solid transparent;
+		border-radius: var(--r-sm);
+		padding: 0.35rem 0.9rem;
+		font-weight: 700;
+		font-size: 0.78rem;
 		cursor: pointer;
+		transition:
+			background var(--dur-1),
+			transform var(--dur-1);
 	}
-	button:hover {
-		background: #1d4ed8;
+	button:hover:not(:disabled) {
+		background: color-mix(in oklab, var(--accent) 85%, white);
+	}
+	button:active:not(:disabled) {
+		transform: scale(0.96);
+	}
+	button:disabled {
+		opacity: 0.4;
+		cursor: not-allowed;
+	}
+	button.done {
+		background: var(--up-dim);
+		color: var(--up);
+		border-color: color-mix(in oklab, var(--up) 40%, transparent);
+	}
+	.err {
+		color: var(--down);
+		font-size: 0.85rem;
+		margin: 0;
 	}
 	pre {
 		margin: 0;
 		background: var(--bg-0);
-		border-radius: 8px;
-		padding: 0.75rem;
-		font-size: 0.75rem;
-		color: #cbd5e1;
-		overflow-x: auto;
-		font-family: ui-monospace, monospace;
+		border: 1px solid var(--border);
+		border-radius: var(--r-sm);
+		padding: 0.8rem 0.9rem;
+		max-height: 320px;
+		overflow: auto;
+		font-size: 0.74rem;
+		color: var(--text-mid);
+		line-height: 1.55;
 	}
 </style>

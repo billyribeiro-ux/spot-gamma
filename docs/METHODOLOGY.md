@@ -154,4 +154,47 @@ Persistent large divergence is a signal to revisit the positioning assumption
 
 The broader Market-Structure system (VIX, bond yields, DXY, breadth, seasonality,
 economic-calendar risk) is intentionally excluded here. The engine/API are
-structured so these become additional panels/endpoints later.
+structured so these become additional panels/endpoints later. See §10 for the
+phased plan; it begins with research, not code.
+
+## 9. Phase 4 — Thinkorswim integration (done)
+
+The engine renders a Thinkorswim study from the computed levels
+(`export_thinkscript.py`), served three ways: the CLI
+(`spotgamma export-thinkscript SPX`), the API (`GET /thinkscript/{symbol}`,
+plain text), and the dashboard panel (which fetches the API so its copy is
+byte-identical — one source of truth). Numbers are proven first (§7); ThinkScript
+is display-only and cannot ingest a chain, so it carries the engine's outputs.
+
+Shipped:
+- **Support/resistance lines & gamma walls** — Call/Put Wall, Abs Gamma, Hedge
+  Wall as horizontal plots; colors match the dashboard ($lib/levels).
+- **Flip zone** — a shaded `AddCloud` band between Gamma Flip and Vol Trigger.
+- **Regime dashboard + color-coded background** — `AddLabel` row (symbol, regime,
+  net GEX, 0DTE%) plus `AssignBackgroundColor` tinting green (positive/pinning) or
+  red (negative/trending).
+- **Alert conditions** — `Crosses(close, level)` alerts on Call Wall, Put Wall,
+  and Gamma Flip, gated behind an `enableAlerts` input (quiet by default).
+
+## 10. Phase 5 — Market-Structure intelligence (research first)
+
+The long-term goal is an institutional **Market Structure Dashboard** that fuses
+gamma with the rest of the regime picture: **VIX / term structure, bond yields,
+DXY, market breadth, dealer positioning, volatility regime, gap statistics,
+seasonality, and economic-calendar risk.**
+
+This is explicitly **research-gated** — the methodology document comes before any
+code, because the synthesis logic (how these combine into a single read) is what
+determines whether the result is genuinely useful or just more dials. Planned
+sequence:
+
+1. **Research + methodology doc** — for each signal: definition, free/licensed
+   data source (reuse the `ChainSource`-style adapter pattern), normalization,
+   and how it maps to a regime score. Document confounders and what *not* to
+   over-claim.
+2. **Composite regime model** — a transparent, weighted/rules-based score (not a
+   black box), with each input independently inspectable.
+3. **Backtest/validation** — does the composite add information over gamma alone?
+4. **UI** — only then, a dashboard surface.
+
+Nothing here is built yet; this section is the contract for how it will be.
