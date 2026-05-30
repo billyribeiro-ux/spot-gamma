@@ -5,10 +5,13 @@ ThetaData serves OPRA-bundled real-time/historical options with greeks (incl.
 running Theta Terminal REST gateway (default ``http://127.0.0.1:25510``), so no
 API key travels in this adapter — the Terminal handles auth.
 
-We use the bulk snapshot endpoints (one call returns every strike/expiration for
-a root): ``/v2/bulk_snapshot/option/greeks`` and
-``/v2/bulk_snapshot/option/open_interest``. Index SPX weeklies/0DTE live under
-the ``SPXW`` root, so index symbols expand to multiple roots.
+We use the bulk snapshot endpoints (one call, ``exp=0`` returns every
+strike/expiration for a root): ``/v2/bulk_snapshot/option/greeks_second_order``
+(gamma is a second-order greek — the first-order ``greeks`` endpoint has delta/
+theta/vega but NOT gamma; the second-order one also carries implied_vol +
+underlying_price) and ``/v2/bulk_snapshot/option/open_interest``. Index SPX
+weeklies/0DTE live under the ``SPXW`` root, so index symbols expand to multiple
+roots.
 
 Response shape: ``{"header": {"format": [...col names...]}, "response": [
 {"contract": {"root","expiration":YYYYMMDD,"strike":strike×1000,"right":"C"/"P"},
@@ -37,9 +40,25 @@ def roots_for(symbol: str) -> list[str]:
     return _ROOTS.get(s, [s])
 
 
-def _row_lookup(payload: dict):
-    """Return (format_index_map, response_list) for a bulk snapshot payload."""
-    fmt = payload.get("header", {}).get("format", [])
+# Gamma is a *second-order* greek: ThetaData serves it from greeks_second_order,
+# NOT the (first-order) greeks endpoint. That endpoint also carries implied_vol
+# and underlying_price, so one call yields everything we need.
+_GREEKS_ENDPOINT = "greeks_second_order"
+# Documented fixed column order, used as a fallback if header.format is absent.
+_GREEKS_FORMAT = [
+    "ms_of_day", "bid", "ask", "gamma", "vanna", "charm", "vomma", "veta",
+    "implied_vol", "iv_error", "ms_of_day2", "underlying_price", "date",
+]
+_OI_FORMAT = ["ms_of_day", "open_interest", "date"]
+
+
+def _row_lookup(payload: dict, fallback_format: list[str]):
+    """Return (format_index_map, response_list) for a bulk snapshot payload.
+
+    Reads column positions from ``header.format`` when present, else falls back
+    to the documented fixed order so a missing header never silently drops data.
+    """
+    fmt = payload.get("header", {}).get("format") or fallback_format
     return {name: i for i, name in enumerate(fmt)}, payload.get("response", [])
 
 
@@ -49,7 +68,7 @@ def _contract_key(c: dict) -> tuple[int, int, str]:
 
 def parse_theta_bulk(greeks_payload: dict, oi_payload: dict, symbol: str) -> ChainSnapshot:
     """Merge greeks + open-interest bulk snapshots into a ChainSnapshot (pure)."""
-    oi_idx, oi_rows = _row_lookup(oi_payload)
+    oi_idx, oi_rows = _row_lookup(oi_payload, _OI_FORMAT)
     oi_by_contract: dict[tuple[int, int, str], int] = {}
     if "open_interest" in oi_idx:
         for item in oi_rows:
@@ -57,7 +76,7 @@ def parse_theta_bulk(greeks_payload: dict, oi_payload: dict, symbol: str) -> Cha
             if ticks and ticks[0]:
                 oi_by_contract[_contract_key(item["contract"])] = int(ticks[0][oi_idx["open_interest"]] or 0)
 
-    g_idx, g_rows = _row_lookup(greeks_payload)
+    g_idx, g_rows = _row_lookup(greeks_payload, _GREEKS_FORMAT)
     contracts: list[OptionContract] = []
     spot = 0.0
     for item in g_rows:
@@ -103,7 +122,8 @@ class ThetaDataSource(ChainSource):
 
         resp = requests.get(
             f"{self.base_url}/v2/bulk_snapshot/option/{endpoint}",
-            params={"root": root, "use_csv": "false"},
+            # exp=0 is required and returns every expiration for the root.
+            params={"root": root, "exp": "0", "use_csv": "false"},
             timeout=30,
         )
         resp.raise_for_status()
@@ -123,7 +143,7 @@ class ThetaDataSource(ChainSource):
         all_contracts: list[OptionContract] = []
         spot = 0.0
         for root in roots_for(symbol):
-            snap = parse_theta_bulk(self._bulk("greeks", root), self._bulk("open_interest", root), symbol)
+            snap = parse_theta_bulk(self._bulk(_GREEKS_ENDPOINT, root), self._bulk("open_interest", root), symbol)
             all_contracts.extend(snap.contracts)
             spot = spot or snap.spot
         return ChainSnapshot(

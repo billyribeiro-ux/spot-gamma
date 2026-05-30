@@ -27,6 +27,21 @@ def polygon_underlying(symbol: str) -> str:
     return f"I:{s}" if s in _INDEX_SYMBOLS else s
 
 
+def underlying_spot(results: list[dict]) -> float:
+    """Extract the underlying level from a snapshot page.
+
+    For index underlyings (``I:SPX``) Polygon returns the level under
+    ``underlying_asset.value``; for equities/ETFs it's ``.price``. The object
+    isn't guaranteed on every item, so scan until one carries a value.
+    """
+    for r in results:
+        ua = r.get("underlying_asset") or {}
+        level = ua.get("value") or ua.get("price")
+        if level:
+            return float(level)
+    return 0.0
+
+
 def parse_polygon_results(results: list[dict], symbol: str, spot: float) -> list[OptionContract]:
     """Normalize Polygon snapshot ``results`` into contracts (pure)."""
     out: list[OptionContract] = []
@@ -85,9 +100,9 @@ class PolygonSource(ChainSource):
             body = resp.json()
             page = body.get("results", [])
             results.extend(page)
-            if not spot and page:
-                spot = float(page[0].get("underlying_asset", {}).get("price") or 0.0)
-            # next_url already carries query params except the apiKey
+            if not spot:
+                spot = underlying_spot(page)
+            # next_url already carries the cursor; only the apiKey must be re-added
             url = body.get("next_url")
             params = {"apiKey": self.api_key}
         if not spot:

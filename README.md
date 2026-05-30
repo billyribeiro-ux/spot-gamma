@@ -28,10 +28,12 @@ key); live data is opt-in.
 ```bash
 cd engine
 pip install -e .
-pytest                                   # 26 tests
+pytest                                   # 27 engine tests
 spotgamma levels SPX --source sample     # print computed levels JSON
 spotgamma export-thinkscript SPX         # write thinkscript/spot_gamma_spx.ts
 ```
+
+Run `pytest` from the repo root to include the API hub tests too (35 total).
 
 ### 1b. Real data, free, no account
 
@@ -68,9 +70,16 @@ probe — auth/reachability), and **Set active** to pick which source feeds the
 dashboard. `cboe` needs no credentials, so you can set it active and run real
 (15-min delayed) data immediately. Credentials are saved server-side to a
 gitignored `instance/credentials.json` (0600), and secret values are never sent
-back to the browser. This is a **local, single-user admin** — don't expose the
-API to untrusted networks. Endpoints: `GET/PUT /admin/sources`,
+back to the browser. Endpoints: `GET/PUT /admin/sources`,
 `POST /admin/sources/{name}/test`, `PUT /admin/active/{name}`.
+
+This is a **local, single-user admin**. It's hardened accordingly: CORS is
+locked to the dashboard origin (`SPOTGAMMA_ALLOWED_ORIGINS`, default
+`http://localhost:5173`) rather than `*`, so a site you visit can't drive the
+credential endpoints cross-origin. To run it somewhere less trusted, set
+`SPOTGAMMA_ADMIN_TOKEN` — every `/admin` route then requires an `X-Admin-Token`
+header, which the dev proxy injects from the same env var so the browser never
+holds it. Bind to `127.0.0.1` unless you've set a token.
 
 ### Going live / wiring your account
 

@@ -13,7 +13,7 @@ from spotgamma.models import OptionType
 from spotgamma.sources.base import SOURCE_NAMES, get_source
 from spotgamma.sources.cboe import cdn_key, parse_cboe_payload
 from spotgamma.sources.occ import parse_occ_symbol
-from spotgamma.sources.polygon import parse_polygon_results, polygon_underlying
+from spotgamma.sources.polygon import parse_polygon_results, polygon_underlying, underlying_spot
 from spotgamma.sources.schwab import parse_schwab_chain, schwab_symbol
 from spotgamma.sources.specs import SOURCE_SPECS, build_source
 from spotgamma.sources.tastytrade import build_snapshot, parse_compact_feed, parse_nested_chain
@@ -102,6 +102,11 @@ def test_polygon_mapping_and_parse():
     contracts = parse_polygon_results(results, "SPX", 5850.0)
     assert len(contracts) == 2
     assert contracts[0].option_type is OptionType.CALL and contracts[0].open_interest == 1000
+    # index spot lives under underlying_asset.value; equities under .price
+    assert underlying_spot([{"underlying_asset": {"value": 5850.0}}]) == 5850.0
+    assert underlying_spot([{"underlying_asset": {"price": 756.5}}]) == 756.5
+    # tolerate the object missing on early items, find it later
+    assert underlying_spot([{}, {"underlying_asset": {"value": 42.0}}]) == 42.0
 
 
 def test_thetadata_roots_and_parse():
@@ -126,6 +131,28 @@ def test_thetadata_roots_and_parse():
     assert snap.spot == 5850.0 and len(snap.contracts) == 2
     call = next(c for c in snap.contracts if c.option_type is OptionType.CALL)
     assert call.strike == 5900.0 and call.open_interest == 1000 and call.gamma == 0.001
+
+
+def test_thetadata_fixed_format_fallback():
+    # No header.format -> parser must fall back to the documented column order of
+    # greeks_second_order: [ms_of_day,bid,ask,gamma,vanna,charm,vomma,veta,
+    #                        implied_vol,iv_error,ms_of_day2,underlying_price,date]
+    greeks_payload = {
+        "response": [
+            {"contract": {"root": "SPXW", "expiration": 20260618, "strike": 5900000, "right": "C"},
+             "ticks": [[1, 1.0, 1.2, 0.0021, 0, 0, 0, 0, 0.16, 0, 1, 5850.0, 20260529]]},
+        ],
+    }
+    oi_payload = {  # OI fixed order: [ms_of_day, open_interest, date]
+        "response": [
+            {"contract": {"root": "SPXW", "expiration": 20260618, "strike": 5900000, "right": "C"},
+             "ticks": [[1, 1234, 20260529]]},
+        ],
+    }
+    snap = parse_theta_bulk(greeks_payload, oi_payload, "SPX")
+    c = snap.contracts[0]
+    assert snap.spot == 5850.0 and c.gamma == 0.0021
+    assert abs(c.implied_volatility - 0.16) < 1e-9 and c.open_interest == 1234
 
 
 def test_tastytrade_nested_parse_compact_and_build():

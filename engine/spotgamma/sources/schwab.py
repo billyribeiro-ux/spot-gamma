@@ -29,19 +29,25 @@ def schwab_symbol(symbol: str) -> str:
     return f"${s}" if s in _INDEX_SYMBOLS else s
 
 
+def _clean(value) -> float | None:
+    """Drop Schwab's ``-999`` (and NaN) sentinels for uncomputed greeks/IV."""
+    if value is None:
+        return None
+    try:
+        v = float(value)
+    except (TypeError, ValueError):
+        return None  # guards stray "NaN" strings the API can emit
+    return None if (v != v or v <= -999.0) else v
+
+
 def _emit(exp_map: dict, opt_type: OptionType, out: list[OptionContract]) -> None:
-    for _exp_key, strikes in exp_map.items():
+    for exp_key, strikes in exp_map.items():
+        # The map key is the authoritative calendar date ("YYYY-MM-DD:DTE");
+        # use it instead of the epoch-ms field to avoid UTC off-by-one drift.
+        expiration = datetime.strptime(exp_key.split(":")[0], "%Y-%m-%d").date()
         for _strike, contracts in strikes.items():
             for c in contracts:
-                exp_ms = c.get("expirationDate")
-                expiration = (
-                    datetime.fromtimestamp(exp_ms / 1000, tz=timezone.utc).date()
-                    if exp_ms
-                    else datetime.strptime(c["expirationDate"][:10], "%Y-%m-%d").date()
-                )
-                gamma = c.get("gamma")
-                # Schwab sends -999.0 for greeks it could not compute.
-                gamma = None if gamma in (None, -999.0) else gamma
+                iv = _clean(c.get("volatility"))
                 out.append(
                     OptionContract(
                         option_type=opt_type,
@@ -49,8 +55,8 @@ def _emit(exp_map: dict, opt_type: OptionType, out: list[OptionContract]) -> Non
                         expiration=expiration,
                         open_interest=int(c.get("openInterest") or 0),
                         volume=int(c.get("totalVolume") or 0),
-                        gamma=gamma,
-                        implied_volatility=(c.get("volatility") / 100.0 if c.get("volatility") not in (None, -999.0) else None),
+                        gamma=_clean(c.get("gamma")),
+                        implied_volatility=(iv / 100.0 if iv is not None else None),
                         bid=c.get("bid"),
                         ask=c.get("ask"),
                     )

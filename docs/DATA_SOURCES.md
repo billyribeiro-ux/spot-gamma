@@ -32,6 +32,27 @@ Parsing for every adapter is a pure function with unit tests
 (`engine/tests/test_sources.py`); the network paths for credentialed sources
 need live verification with your account.
 
+### Contract verification (no account on hand)
+
+Since the credentialed adapters can't be exercised live here, each was checked
+field-by-field against official docs / vendor SDKs. Gotchas that were corrected
+as a result (worth knowing if you debug them live):
+
+- **Schwab** — expiration is taken from the `callExpDateMap` **key** date
+  (`"YYYY-MM-DD:DTE"`), not the epoch-ms field, to avoid a UTC off-by-one;
+  `-999`/`NaN` greek & IV sentinels are dropped; `volatility` is a percent (÷100).
+- **Polygon** — index spot is `underlying_asset.value` (equities use `.price`);
+  the object isn't on every item, so we scan. Greeks/IV require a paid plan and
+  can be null per-contract.
+- **ThetaData** — gamma is a *second-order* greek: it comes from
+  `bulk_snapshot/option/greeks_second_order` (the first-order `greeks` endpoint
+  has no gamma); `exp=0` is required to return all expirations; a documented
+  fixed column order backstops a missing `header.format`.
+- **tastytrade** — indices don't emit DXLink `Trade` events, so underlying spot
+  is read from REST `/market-data/by-type`; greeks/OI stream over DXLink
+  (`/api-quote-tokens` → `token` + `dxlink-url`); subscriptions are chunked
+  (WS 1009). SPX greeks streaming may be license-gated on a given token.
+
 ### cboe (recommended starting point)
 Zero cost, no signup. Public delayed-quotes JSON
 (`cdn.cboe.com/api/global/delayed_quotes/options/_SPX.json`) returns the whole

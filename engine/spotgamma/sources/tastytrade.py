@@ -7,8 +7,10 @@ adapter:
 
   1. logs in (session token) and pulls an api-quote-token,
   2. fetches the nested chain to map streamer-symbol -> (expiry, strike, type),
-  3. opens DXLink, subscribes Greeks + Summary (+ Trade for spot), collects a
-     snapshot until coverage is reached or a timeout elapses.
+  3. reads underlying spot from REST /market-data/by-type (indices don't emit
+     DXLink Trade events, so they can't be priced off the stream),
+  4. opens DXLink, subscribes Greeks + Summary, collects a snapshot until
+     coverage is reached or a timeout elapses.
 
 Auth via ``TASTYTRADE_USERNAME`` / ``TASTYTRADE_PASSWORD`` (or pass a session
 token). Requires the ``stream`` extra (``websockets``). Free with a funded
@@ -25,6 +27,7 @@ from ..models import ChainSnapshot, OptionContract, OptionType
 from .base import ChainSource
 
 _PROD = "https://api.tastytrade.com"
+_INDEX_SYMBOLS = {"SPX", "NDX", "RUT", "VIX", "XSP", "DJX"}
 
 
 class ChainMeta(NamedTuple):
@@ -97,7 +100,6 @@ class TastytradeSource(ChainSource):
     # Greeks: [eventType, eventSymbol, gamma, volatility]; Summary: [..., openInterest]
     _GREEKS_FIELDS = ["eventType", "eventSymbol", "gamma", "volatility"]
     _SUMMARY_FIELDS = ["eventType", "eventSymbol", "openInterest"]
-    _TRADE_FIELDS = ["eventType", "eventSymbol", "price"]
 
     def __init__(self, username: str | None = None, password: str | None = None, base_url: str = _PROD) -> None:
         self.username = username or os.environ.get("TASTYTRADE_USERNAME")
@@ -138,6 +140,24 @@ class TastytradeSource(ChainSource):
         r.raise_for_status()
         return parse_nested_chain(r.json())
 
+    def _market_spot(self, requests, session: str, symbol: str) -> float:
+        """Underlying level via REST. Indices don't emit DXLink Trade events, so
+        the streaming path can't price them — /market-data/by-type can."""
+        s = symbol.upper()
+        bucket = "indices" if s in _INDEX_SYMBOLS else "equities"
+        r = requests.get(
+            f"{self.base_url}/market-data/by-type",
+            params={bucket: s},
+            headers={"Authorization": session},
+            timeout=20,
+        )
+        r.raise_for_status()
+        items = r.json().get("data", {}).get("items", [])
+        if not items:
+            return 0.0
+        q = items[0]
+        return float(q.get("last") or q.get("mark") or q.get("close") or 0.0)
+
     def test_connection(self) -> tuple[bool, str]:
         import requests
 
@@ -150,21 +170,20 @@ class TastytradeSource(ChainSource):
             return False, str(e)
 
     # --- Streaming --------------------------------------------------------
-    def _collect(self, dxlink_url: str, token: str, chain: list[ChainMeta], symbol: str, timeout: float):
+    def _collect(self, dxlink_url: str, token: str, chain: list[ChainMeta], timeout: float):
         import asyncio
 
-        return asyncio.run(self._collect_async(dxlink_url, token, chain, symbol, timeout))
+        return asyncio.run(self._collect_async(dxlink_url, token, chain, timeout))
 
-    async def _collect_async(self, dxlink_url, token, chain, symbol, timeout):
+    async def _collect_async(self, dxlink_url, token, chain, timeout):
         import asyncio
         import json
 
         import websockets
 
-        field_counts = {"Greeks": 4, "Summary": 3, "Trade": 3}
+        field_counts = {"Greeks": 4, "Summary": 3}
         greeks: dict[str, dict] = {}
         oi: dict[str, int] = {}
-        spot = {"v": 0.0}
         symbols = [m.streamer_symbol for m in chain]
 
         async with websockets.connect(dxlink_url, max_size=None) as ws:
@@ -179,12 +198,10 @@ class TastytradeSource(ChainSource):
             await send({"type": "FEED_SETUP", "channel": 1, "acceptAggregationPeriod": 0.1,
                         "acceptDataFormat": "COMPACT",
                         "acceptEventFields": {"Greeks": self._GREEKS_FIELDS,
-                                              "Summary": self._SUMMARY_FIELDS,
-                                              "Trade": self._TRADE_FIELDS}})
+                                              "Summary": self._SUMMARY_FIELDS}})
             sub = [{"type": "Greeks", "symbol": s} for s in symbols]
             sub += [{"type": "Summary", "symbol": s} for s in symbols]
-            sub += [{"type": "Trade", "symbol": symbol.upper()}]
-            # DXLink caps subscription message size; chunk it.
+            # DXLink rejects oversized subscription messages (WS 1009); chunk it.
             for k in range(0, len(sub), 500):
                 await send({"type": "FEED_SUBSCRIPTION", "channel": 1, "add": sub[k : k + 500]})
 
@@ -198,7 +215,7 @@ class TastytradeSource(ChainSource):
                 if msg.get("type") == "KEEPALIVE":
                     await send({"type": "KEEPALIVE", "channel": 0})
                     continue
-                if msg.get("type") != "FEED_DATA":
+                if msg.get("type") != "FEED_DATA":  # ignores AUTH_STATE/CHANNEL_OPENED/FEED_CONFIG
                     continue
                 for etype, fields in parse_compact_feed(msg["data"], field_counts):
                     if etype == "Greeks":
@@ -207,11 +224,9 @@ class TastytradeSource(ChainSource):
                     elif etype == "Summary":
                         _, sym, oi_val = fields
                         oi[sym] = oi_val or 0
-                    elif etype == "Trade":
-                        spot["v"] = float(fields[2] or 0.0)
-                if spot["v"] and len(greeks) >= len(symbols):
+                if len(greeks) >= len(symbols):
                     break
-        return greeks, oi, spot["v"]
+        return greeks, oi
 
     # --- ChainSource ------------------------------------------------------
     def get_chain(self, symbol: str, timeout: float = 20.0) -> ChainSnapshot:
@@ -220,7 +235,8 @@ class TastytradeSource(ChainSource):
         session = self._session_token(requests)
         token, dxlink_url = self._quote_token(requests, session)
         chain = self._nested_chain(requests, session, symbol)
-        greeks, oi, spot = self._collect(dxlink_url, token, chain, symbol, timeout)
+        spot = self._market_spot(requests, session, symbol)
         if not spot:
             raise RuntimeError(f"tastytrade returned no underlying price for {symbol}")
+        greeks, oi = self._collect(dxlink_url, token, chain, timeout)
         return build_snapshot(chain, greeks, oi, spot, symbol)
