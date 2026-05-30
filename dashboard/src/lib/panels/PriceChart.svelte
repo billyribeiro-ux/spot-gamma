@@ -13,7 +13,7 @@
 		type Time,
 		type UTCTimestamp
 	} from 'lightweight-charts';
-	import { fetchHistory } from '$lib/api';
+	import { fetchHistory, formatGex } from '$lib/api';
 	import { TIMEFRAMES, type GammaLevels, type Symbol, type Timeframe } from '$lib/types';
 
 	let { symbol, levels }: { symbol: Symbol; levels: GammaLevels } = $props();
@@ -64,11 +64,12 @@
 		if (!series) return;
 		for (const pl of priceLines) series.removePriceLine(pl);
 		priceLines = [];
+		// SpotGamma-style key levels, overlaid as labeled price lines.
 		const lines: Array<[number | null, string, string]> = [
 			[levels.spot, '#e5e7eb', 'Spot'],
 			[levels.call_wall, '#22c55e', 'Call Wall'],
 			[levels.put_wall, '#ef4444', 'Put Wall'],
-			[levels.zero_gamma, '#f59e0b', 'Zero Γ'],
+			[levels.zero_gamma, '#f59e0b', 'Gamma Flip'],
 			[levels.volatility_trigger, '#a855f7', 'Vol Trigger']
 		];
 		for (const [price, color, title] of lines) {
@@ -142,6 +143,9 @@
 		<div class="title">
 			<h2>Price</h2>
 			{#if lastClose != null}<span class="last">{lastClose.toLocaleString()}</span>{/if}
+			<span class="gex" class:pos={levels.regime === 'positive'} class:neg={levels.regime === 'negative'}>
+				GEX {formatGex(levels.net_gex)}
+			</span>
 		</div>
 		<div class="tfs" role="tablist" aria-label="Timeframe">
 			{#each TIMEFRAMES as tf (tf)}
@@ -187,6 +191,23 @@
 		font-variant-numeric: tabular-nums;
 		font-weight: 700;
 		color: #f3f4f6;
+	}
+	.gex {
+		font-size: 0.72rem;
+		font-weight: 700;
+		padding: 0.1rem 0.45rem;
+		border-radius: 5px;
+		border: 1px solid transparent;
+	}
+	.gex.pos {
+		color: #86efac;
+		background: rgba(34, 197, 94, 0.12);
+		border-color: rgba(34, 197, 94, 0.4);
+	}
+	.gex.neg {
+		color: #fca5a5;
+		background: rgba(239, 68, 68, 0.12);
+		border-color: rgba(239, 68, 68, 0.4);
 	}
 	.tfs {
 		display: flex;
