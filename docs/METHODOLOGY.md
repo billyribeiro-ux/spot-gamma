@@ -72,13 +72,17 @@ where call and put gamma cancel — does not masquerade as a wall.
 | **Call Wall** | Strike with the largest **positive** net GEX at/above spot — resistance, where dealers sell into strength. |
 | **Put Wall** | Strike with the largest **negative** net GEX at/below spot — support, where dealers buy weakness. |
 | **Volatility Trigger** | The listed **strike nearest Zero Gamma** — the actionable, tradable version of the flip. Distinct from Zero Gamma (continuous) by being strike-snapped. |
+| **Absolute Gamma** | Strike with the most **total** gamma (`\|call GEX\| + \|put GEX\|`, side-agnostic) — the single largest gamma concentration / strongest pin. Differs from the walls (net GEX) because near-ATM strikes can stack large call *and* put gamma. |
+| **Hedge Wall** | Strike with the largest **net** dealer-gamma magnitude (`max \|net GEX\|`), whichever side of spot — the dominant hedging wall. Often coincides with the Call or Put Wall when one side clearly dominates. |
 | **Top positive/negative nodes** | Strikes ranked by net GEX, the biggest long- and short-gamma concentrations. |
 | **By expiry** | Net GEX summed per expiration. |
 | **0DTE concentration** | Share of total `|GEX|` sitting in options expiring today, plus 0DTE net GEX. |
 
-> **Note on Volatility Trigger.** SpotGamma's Volatility Trigger™ is proprietary
-> and not identical to this. We define a transparent proxy (strike-snapped flip).
-> Treated as a documented approximation, to be refined during Phase 3 validation.
+> **Note on Volatility Trigger / Absolute Gamma / Hedge Wall.** SpotGamma's
+> Volatility Trigger™, Absolute Gamma, and Hedge Wall are proprietary and not
+> identical to these. We define transparent, public-methodology proxies (above)
+> and treat them as documented approximations, to be refined during Phase 3
+> validation — never silently tuned to match a vendor.
 
 ## 5. Symbol nuances
 

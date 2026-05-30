@@ -6,6 +6,7 @@
 		CrosshairMode,
 		LineStyle,
 		createChart,
+		type AutoscaleInfo,
 		type CandlestickData,
 		type IChartApi,
 		type IPriceLine,
@@ -15,16 +16,20 @@
 	} from 'lightweight-charts';
 	import { fetchHistory, formatGex } from '$lib/api';
 	import { TIMEFRAMES, type GammaLevels, type Symbol, type Timeframe } from '$lib/types';
+	import GexProfile from './GexProfile.svelte';
 
 	let { symbol, levels }: { symbol: Symbol; levels: GammaLevels } = $props();
 
 	const REFRESH_MS = 30_000;
 	const INTRADAY = new Set<Timeframe>(['1m', '5m', '15m', '30m', '1h']);
+	const CHART_H = 360;
 
 	let timeframe = $state<Timeframe>('5m');
 	let container: HTMLDivElement;
 	let error = $state<string | null>(null);
 	let lastClose = $state<number | null>(null);
+	// Shared price domain so the GEX profile strip aligns with the candle axis.
+	let priceDomain = $state<[number, number] | null>(null);
 
 	// Imperative chart handles live outside Svelte reactivity.
 	let chart: IChartApi | undefined;
@@ -32,6 +37,36 @@
 	let priceLines: IPriceLine[] = [];
 	let ready = $state(false);
 	let loadToken = 0;
+	// Plain (non-reactive) caches so the effects below only ever *write* state and
+	// never read it back — that's what avoids a reactive feedback loop.
+	// levelRange: min/max of the level prices; the autoscale unions it in so the
+	// walls stay on screen. candleBounds/lastBars: last loaded series.
+	let levelRange: { min: number; max: number } | null = null;
+	let candleBounds: { lo: number; hi: number } | null = null;
+	let lastBars: CandlestickData<Time>[] = [];
+
+	function recomputeLevelRange() {
+		const ps = [
+			levels.spot,
+			levels.call_wall,
+			levels.put_wall,
+			levels.zero_gamma,
+			levels.volatility_trigger,
+			levels.absolute_gamma,
+			levels.hedge_wall
+		].filter((v): v is number => v != null);
+		levelRange = ps.length ? { min: Math.min(...ps), max: Math.max(...ps) } : null;
+	}
+
+	function recomputeDomain() {
+		const los = [candleBounds?.lo, levelRange?.min].filter((v): v is number => v != null);
+		const his = [candleBounds?.hi, levelRange?.max].filter((v): v is number => v != null);
+		if (!los.length || !his.length) return;
+		const lo = Math.min(...los);
+		const hi = Math.max(...his);
+		const pad = (hi - lo) * 0.02 || 1;
+		priceDomain = [lo - pad, hi + pad];
+	}
 
 	async function load() {
 		if (!series) return;
@@ -39,17 +74,21 @@
 		try {
 			const hist = await fetchHistory(symbol, timeframe);
 			if (token !== loadToken || !series) return; // a newer request superseded us
-			series.setData(
-				hist.bars.map(
-					(b): CandlestickData<Time> => ({
-						time: b.time as UTCTimestamp,
-						open: b.open,
-						high: b.high,
-						low: b.low,
-						close: b.close
-					})
-				)
+			lastBars = hist.bars.map(
+				(b): CandlestickData<Time> => ({
+					time: b.time as UTCTimestamp,
+					open: b.open,
+					high: b.high,
+					low: b.low,
+					close: b.close
+				})
 			);
+			candleBounds = {
+				lo: Math.min(...hist.bars.map((b) => b.low)),
+				hi: Math.max(...hist.bars.map((b) => b.high))
+			};
+			recomputeDomain(); // levelRange is maintained by the levels effect
+			series.setData(lastBars);
 			lastClose = hist.bars.at(-1)?.close ?? hist.meta.last_price ?? null;
 			error = null;
 			chart?.applyOptions({ timeScale: { timeVisible: INTRADAY.has(timeframe), secondsVisible: false } });
@@ -70,7 +109,9 @@
 			[levels.call_wall, '#22c55e', 'Call Wall'],
 			[levels.put_wall, '#ef4444', 'Put Wall'],
 			[levels.zero_gamma, '#f59e0b', 'Gamma Flip'],
-			[levels.volatility_trigger, '#a855f7', 'Vol Trigger']
+			[levels.volatility_trigger, '#a855f7', 'Vol Trigger'],
+			[levels.absolute_gamma, '#06b6d4', 'Abs Gamma'],
+			[levels.hedge_wall, '#fb923c', 'Hedge Wall']
 		];
 		for (const [price, color, title] of lines) {
 			if (price == null) continue;
@@ -112,7 +153,21 @@
 			borderUpColor: '#22c55e',
 			borderDownColor: '#ef4444',
 			wickUpColor: '#4ade80',
-			wickDownColor: '#f87171'
+			wickDownColor: '#f87171',
+			// Union the candle range with the level range so the Call/Put walls are
+			// always visible, without ever clipping the candles.
+			autoscaleInfoProvider: (orig: () => AutoscaleInfo | null) => {
+				const base = orig();
+				if (!levelRange) return base;
+				if (!base?.priceRange) return { priceRange: { minValue: levelRange.min, maxValue: levelRange.max } };
+				return {
+					priceRange: {
+						minValue: Math.min(base.priceRange.minValue, levelRange.min),
+						maxValue: Math.max(base.priceRange.maxValue, levelRange.max)
+					},
+					margins: base.margins
+				};
+			}
 		});
 		ready = true;
 		const id = setInterval(load, REFRESH_MS);
@@ -131,10 +186,15 @@
 		if (ready) load();
 	});
 
-	// Redraw level overlays whenever levels change.
+	// Redraw level overlays + refresh the shared price domain whenever levels
+	// change. Re-setData so the autoscale re-unions the (possibly moved) walls.
 	$effect(() => {
 		void levels;
-		if (ready) drawLevels();
+		if (!ready) return;
+		recomputeLevelRange();
+		recomputeDomain();
+		drawLevels();
+		if (lastBars.length) series?.setData(lastBars);
 	});
 </script>
 
@@ -158,7 +218,10 @@
 			{/each}
 		</div>
 	</header>
-	<div class="chart" bind:this={container}></div>
+	<div class="chart-row">
+		<div class="chart" bind:this={container}></div>
+		{#if priceDomain}<GexProfile {levels} domain={priceDomain} height={CHART_H} />{/if}
+	</div>
 	{#if error}<p class="err">Chart unavailable — {error}</p>{/if}
 </section>
 
@@ -228,9 +291,15 @@
 		color: #fff;
 		border-color: #2563eb;
 	}
+	.chart-row {
+		display: flex;
+		gap: 4px;
+		align-items: stretch;
+	}
 	.chart {
-		width: 100%;
+		flex: 1 1 auto;
 		height: 360px;
+		min-width: 0;
 	}
 	.err {
 		color: #fca5a5;

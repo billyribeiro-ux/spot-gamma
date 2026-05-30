@@ -114,6 +114,8 @@ class GammaLevels(BaseModel):
     volatility_trigger: Optional[float]
     call_wall: Optional[float]
     put_wall: Optional[float]
+    absolute_gamma: Optional[float] = None  # strike with the most total gamma
+    hedge_wall: Optional[float] = None      # strike with the largest net dealer gamma
 
     top_positive_nodes: list[StrikeGamma]
     top_negative_nodes: list[StrikeGamma]

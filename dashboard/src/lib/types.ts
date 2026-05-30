@@ -22,6 +22,8 @@ export interface GammaLevels {
 	volatility_trigger: number | null;
 	call_wall: number | null;
 	put_wall: number | null;
+	absolute_gamma: number | null;
+	hedge_wall: number | null;
 	top_positive_nodes: StrikeGamma[];
 	top_negative_nodes: StrikeGamma[];
 	by_strike: StrikeGamma[];

@@ -40,6 +40,21 @@ def test_zero_dte_concentration_present(symbol):
     assert 0.0 < levels.zero_dte_share < 1.0
 
 
+@pytest.mark.parametrize("symbol", list(EXPECTED))
+def test_absolute_gamma_and_hedge_wall(symbol):
+    levels = compute_levels(SampleSource().get_chain(symbol))
+    by_strike = {s.strike: s for s in levels.by_strike}
+
+    # both resolve to listed strikes
+    assert levels.absolute_gamma in by_strike
+    assert levels.hedge_wall in by_strike
+
+    # absolute gamma = the strike with the most TOTAL gamma (calls + puts)
+    assert levels.absolute_gamma == max(levels.by_strike, key=lambda s: s.total_abs_gex).strike
+    # hedge wall = the strike with the largest NET gamma magnitude
+    assert levels.hedge_wall == max(levels.by_strike, key=lambda s: abs(s.net_gex)).strike
+
+
 def test_top_nodes_ordered():
     levels = compute_levels(SampleSource().get_chain("SPX"))
     pos = [n.net_gex for n in levels.top_positive_nodes]

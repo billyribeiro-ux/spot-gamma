@@ -46,6 +46,26 @@ def _volatility_trigger(strikes: list[StrikeGamma], spot: float, zero_gamma: Opt
     return max(positive, key=lambda s: s.net_gex).strike if positive else None
 
 
+def _absolute_gamma(strikes: list[StrikeGamma]) -> Optional[float]:
+    """Strike holding the most *total* option gamma (calls + puts, side-agnostic).
+
+    SpotGamma's "Absolute Gamma" — the single largest gamma concentration, which
+    tends to act as the strongest magnet/pin. Distinct from the walls (net gamma)
+    because near-ATM strikes can stack large call *and* put gamma at once.
+    """
+    return max(strikes, key=lambda s: s.total_abs_gex).strike if strikes else None
+
+
+def _hedge_wall(strikes: list[StrikeGamma]) -> Optional[float]:
+    """Strike with the largest *net* dealer gamma magnitude (the dominant wall).
+
+    SpotGamma's "Hedge Wall" — the level around which dealer hedging flux is
+    greatest; we take the strike whose net GEX is largest in absolute terms,
+    whichever side of spot it sits on.
+    """
+    return max(strikes, key=lambda s: abs(s.net_gex)).strike if strikes else None
+
+
 def compute_levels(
     snap: ChainSnapshot,
     top_n: int = 5,
@@ -82,6 +102,8 @@ def compute_levels(
         volatility_trigger=_volatility_trigger(by_strike, snap.spot, zero_gamma),
         call_wall=_call_wall(by_strike, snap.spot),
         put_wall=_put_wall(by_strike, snap.spot),
+        absolute_gamma=_absolute_gamma(by_strike),
+        hedge_wall=_hedge_wall(by_strike),
         top_positive_nodes=positive_nodes[:top_n],
         top_negative_nodes=negative_nodes[:top_n],
         by_strike=by_strike,
