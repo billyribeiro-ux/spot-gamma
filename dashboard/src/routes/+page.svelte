@@ -53,6 +53,7 @@
 			{#each SYMBOLS as s (s)}
 				<button class:active={s === symbol} onclick={() => (symbol = s)}>{s}</button>
 			{/each}
+			<a class="conn" href="/admin">⚙ Connections</a>
 		</nav>
 	</header>
 
@@ -126,6 +127,18 @@
 		background: #2563eb;
 		color: #fff;
 		border-color: #2563eb;
+	}
+	nav .conn {
+		display: inline-flex;
+		align-items: center;
+		background: #111827;
+		color: #93c5fd;
+		border: 1px solid #1f2937;
+		border-radius: 8px;
+		padding: 0.4rem 0.9rem;
+		font-weight: 600;
+		font-size: 0.85rem;
+		text-decoration: none;
 	}
 	.spot-line {
 		display: flex;

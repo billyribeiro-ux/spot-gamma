@@ -59,6 +59,18 @@ class PolygonSource(ChainSource):
                 "PolygonSource requires POLYGON_API_KEY. Use --source cboe for a free option."
             )
 
+    def test_connection(self) -> tuple[bool, str]:
+        import requests
+
+        try:
+            r = requests.get(f"{_BASE}/v1/marketstatus/now", params={"apiKey": self.api_key}, timeout=15)
+            if r.status_code in (401, 403):
+                return False, f"{r.status_code} — API key rejected"
+            r.raise_for_status()
+            return True, "API key valid"
+        except Exception as e:  # noqa: BLE001
+            return False, str(e)
+
     def get_chain(self, symbol: str) -> ChainSnapshot:
         import requests
 

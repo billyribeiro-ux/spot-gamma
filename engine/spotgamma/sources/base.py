@@ -20,6 +20,14 @@ class ChainSource(ABC):
         """Return a normalized chain snapshot for ``symbol`` (e.g. "SPX")."""
         raise NotImplementedError
 
+    def test_connection(self) -> tuple[bool, str]:
+        """Cheap reachability/auth check for the admin hub.
+
+        Returns ``(ok, message)``. The default succeeds for sources that need no
+        network (e.g. sample); networked adapters override with a light probe.
+        """
+        return True, "ready"
+
 
 # Registered sources. Lazy importers keep an unused adapter's optional deps
 # (requests, websockets) from blocking startup.

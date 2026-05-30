@@ -77,3 +77,13 @@ class CboeSource(ChainSource):
         resp = requests.get(url, timeout=30)
         resp.raise_for_status()
         return parse_cboe_payload(resp.json(), symbol)
+
+    def test_connection(self) -> tuple[bool, str]:
+        import requests
+
+        # stream + immediate close fetches headers only (the JSON is multi-MB).
+        resp = requests.get(f"{_BASE}/{cdn_key('SPY')}.json", stream=True, timeout=15)
+        ok = resp.ok
+        status = resp.status_code
+        resp.close()
+        return ok, ("Cboe CDN reachable" if ok else f"HTTP {status}")

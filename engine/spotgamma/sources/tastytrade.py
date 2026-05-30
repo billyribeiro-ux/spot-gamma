@@ -138,6 +138,17 @@ class TastytradeSource(ChainSource):
         r.raise_for_status()
         return parse_nested_chain(r.json())
 
+    def test_connection(self) -> tuple[bool, str]:
+        import requests
+
+        try:
+            session = self._session_token(requests)
+            # validate we can also mint a quote token (needed for streaming greeks)
+            self._quote_token(requests, session)
+            return True, "Logged in; streaming quote token issued"
+        except Exception as e:  # noqa: BLE001
+            return False, str(e)
+
     # --- Streaming --------------------------------------------------------
     def _collect(self, dxlink_url: str, token: str, chain: list[ChainMeta], symbol: str, timeout: float):
         import asyncio

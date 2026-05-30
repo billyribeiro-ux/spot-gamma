@@ -55,6 +55,13 @@ class TradierSource(ChainSource):
         dates = (data.get("expirations") or {}).get("date") or []
         return dates if isinstance(dates, list) else [dates]
 
+    def test_connection(self) -> tuple[bool, str]:
+        try:
+            self._get("/markets/quotes", {"symbols": "SPY"})
+            return True, "Authenticated; market data reachable"
+        except Exception as e:  # noqa: BLE001 — surface any auth/network failure
+            return False, str(e)
+
     # --- ChainSource ------------------------------------------------------
     def get_chain(self, symbol: str) -> ChainSnapshot:
         spot = self._quote_spot(symbol)

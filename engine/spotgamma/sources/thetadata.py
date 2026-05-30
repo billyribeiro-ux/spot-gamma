@@ -109,6 +109,16 @@ class ThetaDataSource(ChainSource):
         resp.raise_for_status()
         return resp.json()
 
+    def test_connection(self) -> tuple[bool, str]:
+        import requests
+
+        try:
+            # Any HTTP response means the local Terminal gateway is up.
+            r = requests.get(f"{self.base_url}/v2/system/mdds/status", timeout=8)
+            return True, f"Theta Terminal reachable (HTTP {r.status_code})"
+        except Exception as e:  # noqa: BLE001
+            return False, f"Theta Terminal not reachable at {self.base_url}: {e}"
+
     def get_chain(self, symbol: str) -> ChainSnapshot:
         all_contracts: list[OptionContract] = []
         spot = 0.0

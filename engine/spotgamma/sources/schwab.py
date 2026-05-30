@@ -82,6 +82,23 @@ class SchwabSource(ChainSource):
                 "Use --source cboe for a free no-auth option."
             )
 
+    def test_connection(self) -> tuple[bool, str]:
+        import requests
+
+        try:
+            r = requests.get(
+                f"{_BASE}/quotes",
+                params={"symbols": "SPY"},
+                headers={"Authorization": f"Bearer {self.token}", "Accept": "application/json"},
+                timeout=15,
+            )
+            if r.status_code == 401:
+                return False, "401 — token expired or invalid (Schwab tokens refresh every 7 days)"
+            r.raise_for_status()
+            return True, "Authenticated; market data reachable"
+        except Exception as e:  # noqa: BLE001
+            return False, str(e)
+
     def get_chain(self, symbol: str) -> ChainSnapshot:
         import requests
 

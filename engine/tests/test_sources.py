@@ -15,6 +15,7 @@ from spotgamma.sources.cboe import cdn_key, parse_cboe_payload
 from spotgamma.sources.occ import parse_occ_symbol
 from spotgamma.sources.polygon import parse_polygon_results, polygon_underlying
 from spotgamma.sources.schwab import parse_schwab_chain, schwab_symbol
+from spotgamma.sources.specs import SOURCE_SPECS, build_source
 from spotgamma.sources.tastytrade import build_snapshot, parse_compact_feed, parse_nested_chain
 from spotgamma.sources.thetadata import parse_theta_bulk, roots_for
 
@@ -23,6 +24,21 @@ def test_registry_lists_all_adapters():
     assert set(SOURCE_NAMES) == {"sample", "cboe", "tradier", "schwab", "polygon", "thetadata", "tastytrade"}
     with pytest.raises(ValueError):
         get_source("nope")
+
+
+def test_specs_cover_every_source_and_build():
+    # every registered source has a connection spec
+    assert set(SOURCE_SPECS) == set(SOURCE_NAMES)
+    # credential-free sources build and report a connection spec correctly
+    assert SOURCE_SPECS["cboe"].needs_credentials is False
+    assert SOURCE_SPECS["polygon"].fields[0].key == "api_key"
+    sample = build_source("sample")
+    assert sample.test_connection()[0] is True  # default probe succeeds offline
+    # credentialed sources raise cleanly when neither creds nor env are present
+    with pytest.raises(RuntimeError):
+        build_source("schwab", {})
+    with pytest.raises(ValueError):
+        build_source("bogus")
 
 
 def test_parse_occ_symbol():

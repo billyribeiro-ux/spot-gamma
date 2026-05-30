@@ -60,6 +60,18 @@ The dashboard polls the API every 30s and renders regime, key levels, the
 net-gamma-by-strike heatmap (call wall / put wall / vol trigger), per-expiry
 gamma, 0DTE concentration, and a copy-paste ThinkScript block.
 
+### Connections hub (`/admin`)
+
+Open `http://localhost:5173/admin` to wire data sources without touching env
+vars: paste each provider's API credentials, **Test connection** (a live backend
+probe — auth/reachability), and **Set active** to pick which source feeds the
+dashboard. `cboe` needs no credentials, so you can set it active and run real
+(15-min delayed) data immediately. Credentials are saved server-side to a
+gitignored `instance/credentials.json` (0600), and secret values are never sent
+back to the browser. This is a **local, single-user admin** — don't expose the
+API to untrusted networks. Endpoints: `GET/PUT /admin/sources`,
+`POST /admin/sources/{name}/test`, `PUT /admin/active/{name}`.
+
 ### Going live / wiring your account
 
 Multiple data sources are pluggable behind one `ChainSource` interface — pick the

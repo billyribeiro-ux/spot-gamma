@@ -19,6 +19,10 @@ dashboard/.vite/
 *.log
 levels.json
 
+# Saved API credentials (admin hub) — never commit
+instance/
+credentials.json
+
 # OS / editor
 .DS_Store
 .idea/
