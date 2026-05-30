@@ -131,5 +131,35 @@ def test_market_structure_endpoint(client, monkeypatch):
     assert body["bias"] in {"risk-on", "neutral", "risk-off"}
     assert body["vol_regime"] in {"calm", "normal", "stressed", "crisis"}
     assert -1.5 <= body["regime_score"] <= 1.5
+    assert body["gamma_available"] is True and 0.0 <= body["actionability"] <= 1.5
     keys = {s["key"] for s in body["signals"]}
     assert "vix" in keys and "credit" in keys  # core signals present
+
+
+def test_market_structure_degrades_without_gamma(client, monkeypatch):
+    # Chain/levels feed down -> macro/vol read still returns 200 with gamma omitted.
+    class _Q:
+        def __init__(self, p):
+            self.price = p
+
+    quotes = {"^VIX": 15.3, "^VIX3M": 18.6, "^VVIX": 86.0, "DX-Y.NYB": 98.9}
+    series = {"BAMLH0A0HYM2": 2.72, "T10Y2Y": 0.47}
+
+    class _Pt:
+        def __init__(self, v):
+            self.value = v
+
+    monkeypatch.setattr("spotgamma.marketstructure.fred.fetch_series", lambda sid: [_Pt(series[sid])])
+    monkeypatch.setattr("spotgamma.marketstructure.quotes.fetch_quote", lambda t: _Q(quotes[t]))
+    # force the levels lookup to fail (as if the chain source were unreachable)
+    import api.main as m
+
+    monkeypatch.setattr(m, "_get_levels", lambda *a, **k: (_ for _ in ()).throw(m.HTTPException(502, "down")))
+
+    resp = client.get("/market-structure?symbol=SPX")
+    assert resp.status_code == 200  # degraded, not fatal
+    body = resp.json()
+    assert body["gamma_available"] is False
+    assert "gamma" in body["unavailable"]
+    assert body["gamma_modifier"] == 1.0  # neutral when no gamma
+    assert body["vol_regime"] in {"calm", "normal", "stressed", "crisis"}

@@ -43,7 +43,9 @@ export interface MarketStructure {
 	symbol: string;
 	regime_score: number;
 	roro_score: number;
+	actionability: number;
 	gamma_modifier: number;
+	gamma_available: boolean;
 	bias: 'risk-on' | 'neutral' | 'risk-off';
 	vol_regime: 'calm' | 'normal' | 'stressed' | 'crisis';
 	divergence: boolean;

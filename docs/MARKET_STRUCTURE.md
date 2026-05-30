@@ -201,11 +201,22 @@ single opaque number):
    (it's a slow recession prior, wrong sign intraday). Weights live in one constant
    in the code and cite this table.
 
-2. **Gamma modifier** — multiplies the RORO sub-score's *actionability* in
-   `[0.5 … 1.5]` by net-GEX sign/magnitude and distance to flip (deep positive →
-   0.5, deep negative → 1.5).
+2. **Gamma modifier** — scales *conviction*, **never the sign**, in `[0.5 … 1.5]`
+   by net-GEX sign/magnitude and distance to flip (deep positive → 0.5 = pinned,
+   fade extremes; deep negative → 1.5 = trending, act harder). Gamma's *directional*
+   vote enters the RORO sum once (the 0.15 weight above); the modifier is a separate
+   conviction gate on the volatility-regime axis. The two channels are intentional
+   (§4): the additive term is gamma's risk-on/off vote, the modifier is how hard to
+   act — but the modifier is **never** allowed to flip or amplify the signed
+   direction (multiplying a signed score would make negative gamma read "more
+   risk-on" in a calm tape, which is nonsensical).
 
-`RegimeScore = RORO_subscore × GammaModifier`, surfaced alongside its components.
+Composite outputs, all surfaced:
+- `roro_score ∈ [-1,+1]` — the signed risk-on/off direction (the bias).
+- `gamma_modifier ∈ [0.5,1.5]` — the conviction gate.
+- `actionability = |roro| × modifier` — how strongly to act.
+- `regime_score = sign(roro) × actionability` — signed conviction; preserves the
+   RORO sign and only scales magnitude.
 
 **Honesty rules baked in:** (a) show every component and the divergence between
 them — *alignment* is the signal, a lone disagreeing component is an instability

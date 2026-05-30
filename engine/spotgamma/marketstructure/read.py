@@ -28,8 +28,14 @@ def _safe(fn, *args):
         return None, f"{e}"
 
 
-def build_market_structure(*, net_gex: float, spot: float, zero_gamma: float | None) -> MarketStructure:
-    """Fetch every free signal and compose the regime read (graceful on failure)."""
+def build_market_structure(
+    *, net_gex: float | None = None, spot: float | None = None, zero_gamma: float | None = None
+) -> MarketStructure:
+    """Fetch every free signal and compose the regime read (graceful on failure).
+
+    Gamma inputs are optional: when the chain feed is unavailable, the macro/vol
+    read still computes (the gamma vote/gate are simply excluded — see compose).
+    """
     from .fred import fetch_series, latest
     from .quotes import fetch_quote
 
@@ -75,8 +81,7 @@ def build_market_structure(*, net_gex: float, spot: float, zero_gamma: float | N
         sigs.append(S.dollar_signal(dxy, None, None))
 
     ratio = (vix / vix3m) if (vix and vix3m) else 1.0
-    vvix_ratio = (vvix / vix) if (vvix and vix) else 6.0
-    vr = S.vol_regime(vix or 20.0, ratio, vvix_ratio)
+    vr = S.vol_regime(vix or 20.0, ratio, vvix or 85.0)
 
     read = compose(sigs, vol_regime_label=vr, net_gex=net_gex, spot=spot, zero_gamma=zero_gamma)
     return MarketStructure(read=read, inputs=inputs, unavailable=unavailable)

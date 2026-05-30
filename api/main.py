@@ -195,29 +195,46 @@ def market_structure(symbol: str = Query(default="SPX"), source: str | None = Qu
     cached = _ms_cache.get(key)
     if cached is not None:
         return cached
-    levels = _get_levels(symbol, src)  # raises 404/502 with a clear message
+    # Gamma degrades gracefully: if the chain feed is down the macro/vol read still
+    # computes (gamma vote/gate excluded), per the endpoint's contract.
+    gamma_available = True
     try:
-        ms = build_market_structure(net_gex=levels.net_gex, spot=levels.spot, zero_gamma=levels.zero_gamma)
-    except Exception as e:  # the whole read failing is unexpected (feeds degrade individually)
+        levels = _get_levels(symbol, src)
+        gx, spot, flip = levels.net_gex, levels.spot, levels.zero_gamma
+    except HTTPException:
+        gamma_available = False
+        gx = spot = flip = None
+    try:
+        ms = build_market_structure(net_gex=gx, spot=spot, zero_gamma=flip)
+    except Exception as e:  # internal failure (feeds degrade individually) -> 500
         log.warning("market-structure(%s) failed: %s", symbol, e)
-        raise HTTPException(status_code=502, detail=f"market-structure error: {e}") from e
+        raise HTTPException(status_code=500, detail=f"market-structure error: {e}") from e
     read = ms.read
+    unavailable = list(ms.unavailable) + ([] if gamma_available else ["gamma"])
     payload = {
         "symbol": symbol.upper(),
         "regime_score": round(read.regime_score, 3),
         "roro_score": round(read.roro_score, 3),
+        "actionability": round(read.actionability, 3),
         "gamma_modifier": round(read.gamma_modifier, 3),
+        "gamma_available": gamma_available,
         "bias": read.bias,
         "vol_regime": read.vol_regime,
         "divergence": read.divergence,
         "flip_transition_risk": read.flip_transition_risk,
         "signals": [
-            {"key": s.key, "label": s.label, "value": round(s.value, 4), "score": round(s.score, 3),
-             "bias": s.bias, "detail": s.detail}
+            {
+                "key": s.key,
+                "label": s.label,
+                "value": round(s.value, 4),
+                "score": round(s.score, 3),
+                "bias": s.bias,
+                "detail": s.detail,
+            }
             for s in read.signals
         ],
         "inputs": ms.inputs,
-        "unavailable": ms.unavailable,
+        "unavailable": unavailable,
     }
     _ms_cache.put(key, payload)
     return payload

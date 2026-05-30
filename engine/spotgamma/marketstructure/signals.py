@@ -58,9 +58,10 @@ def vix_signal(vix: float) -> Signal:
         label = "fear"
     else:
         label = "crisis"
-    # 12 (calm) -> -1, 30 (fear) -> +1, so the ~20 long-run mean reads ~neutral
-    # and "elevated" (20-30) reads mildly risk-off.
-    score = _lerp_score(vix, calm=12.0, crisis=30.0)
+    # 12 (calm) -> -1, 40 (crisis) -> +1, so the ~20 long-run mean reads mildly
+    # risk-off and true crisis (40+) scores above "fear" rather than saturating
+    # at the elevated threshold.
+    score = _lerp_score(vix, calm=12.0, crisis=40.0)
     return Signal("vix", label, vix, score, f"VIX {vix:.1f} — {label}")
 
 
@@ -76,23 +77,42 @@ def term_structure_signal(vix: float, vix3m: float) -> Signal:
 
 
 def vvix_signal(vvix: float, vix: float) -> Signal:
-    """VVIX -> fragility. Value is the VVIX/VIX divergence, not the level (§2.3).
+    """VVIX -> tail-uncertainty / fragility (§2.3).
 
-    Low-and-fragile = elevated VVIX while VIX is subdued. We score the VVIX/VIX
-    ratio relative to its rough normal (~6) so a high ratio at low VIX reads as
-    risk-off even when VIX itself looks calm.
+    The bare VVIX/VIX *ratio* is a trap: VVIX is far less volatile than VIX, so the
+    ratio mechanically *falls* in a crisis (VIX spikes) and *rises* in dead calm —
+    the opposite of the intended read. Instead we score VVIX against its own
+    baseline (long-run mean ~85, elevated >120, crisis >150 per §2.3), and capture
+    the documented **divergence**: elevated VVIX while VIX is subdued = "low and
+    fragile", a forward risk-off tell (Fed FEDS 2013-54). A high VVIX *with* an
+    already-high VIX is the crisis itself, also risk-off — so a high VVIX is
+    risk-off either way; only a genuinely low VVIX is risk-on.
     """
-    if vix <= 0:
-        return Signal("vvix", "n/a", vvix, 0.0, "VIX unavailable")
-    ratio = vvix / vix
-    label = "fragile" if ratio >= 7.0 else ("calm" if ratio < 5.0 else "normal")
-    # ratio 4 (stable) -> -1, ratio 9 (very fragile) -> +1
-    score = _lerp_score(ratio, calm=4.0, crisis=9.0)
-    return Signal("vvix", label, vvix, score, f"VVIX/VIX {ratio:.1f} — {label}")
+    if vvix <= 0:
+        return Signal("vvix", "n/a", vvix, 0.0, "VVIX unavailable")
+    # 80 (calm) -> -1, 150 (crisis) -> +1, so ~85 mean reads slightly risk-on
+    base = _lerp_score(vvix, calm=80.0, crisis=150.0)
+    # divergence nudge: elevated VVIX while VIX is subdued is extra risk-off
+    fragile = vvix >= 100.0 and 0 < vix < 16.0
+    score = _clamp(base + (0.25 if fragile else 0.0))
+    if fragile:
+        label = "fragile"
+    elif vvix >= 120:
+        label = "elevated"
+    elif vvix < 85:
+        label = "calm"
+    else:
+        label = "normal"
+    detail = f"VVIX {vvix:.0f}" + (" (low-VIX divergence)" if fragile else f" — {label}")
+    return Signal("vvix", label, vvix, score, detail)
 
 
-def vol_regime(vix: float, ratio: float, vvix_ratio: float) -> str:
-    """Transparent calm/normal/stressed/crisis label from §2.4's matrix."""
+def vol_regime(vix: float, ratio: float, vvix: float) -> str:
+    """Transparent calm/normal/stressed/crisis label from §2.4's matrix.
+
+    ``ratio`` is VIX/VIX3M (>=1 = backwardation); ``vvix`` is the VVIX *level*
+    (the doc's "calm (normal if VVIX>120)" cell keys on the level, not a ratio).
+    """
     backwardation = ratio >= 1.0
     if vix > 30:
         return "crisis" if backwardation else "stressed"
@@ -101,7 +121,7 @@ def vol_regime(vix: float, ratio: float, vvix_ratio: float) -> str:
     # VIX < 20
     if backwardation:
         return "stressed"
-    return "normal" if vvix_ratio >= 7.0 else "calm"
+    return "normal" if vvix >= 120.0 else "calm"
 
 
 # --- Macro / cross-asset (§3) ---------------------------------------------
@@ -157,8 +177,11 @@ def dollar_signal(dxy: float, dxy_200dma: float | None, dxy_20d_change_pct: floa
     roc = dxy_20d_change_pct or 0.0
     # fast appreciation (>+3% in 20d) is the equity-negative event
     score = _clamp(roc / 3.0)  # +3% -> +1 before trend gating
-    if not above_trend:
-        score *= 0.5  # below the 200-DMA, dollar strength is less of a headwind
+    # Gate only the risk-OFF (strengthening) side: dollar strength below its
+    # 200-DMA is a weaker headwind. A *weakening* dollar (risk-on) is not muted —
+    # "below trend" and "weakening" are independent, so we don't touch score < 0.
+    if score > 0 and not above_trend:
+        score *= 0.5
     label = "strengthening" if score > 0.2 else ("weakening" if score < -0.2 else "neutral")
     return Signal("dollar", label, dxy, _clamp(score), f"DXY {dxy:.1f} — {label}")
 

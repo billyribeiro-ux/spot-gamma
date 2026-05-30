@@ -73,7 +73,13 @@
 		</div>
 
 		<div class="flags">
-			<span class="flag">γ-gate ×{ms.gamma_modifier.toFixed(2)}</span>
+			{#if ms.gamma_available}
+				<span class="flag" title="Dealer-gamma conviction gate: >1 trending (act harder), <1 pinned (fade extremes)">
+					γ-conviction ×{ms.gamma_modifier.toFixed(2)}
+				</span>
+			{:else}
+				<span class="flag">γ n/a</span>
+			{/if}
 			{#if ms.divergence}<span class="flag warn">⚠ signal divergence</span>{/if}
 			{#if ms.flip_transition_risk}<span class="flag warn">⚠ near gamma flip</span>{/if}
 		</div>

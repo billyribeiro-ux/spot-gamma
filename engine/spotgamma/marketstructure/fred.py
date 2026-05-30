@@ -63,9 +63,12 @@ def fetch_series(series_id: str, observation_start: str | None = None) -> list[F
     params = {"id": series_id}
     if observation_start:
         params["cosd"] = observation_start
-    # FRED's CDN 503s browser-style and custom UAs (the Yahoo session sends a
-    # browser UA), but accepts a plain library UA. Override per-request — Yahoo
-    # and FRED have opposite UA requirements, so they can't share one default.
-    resp = session().get(_BASE, params=params, timeout=20, headers={"User-Agent": "python-requests/2.31.0"})
+    resp = session().get(_BASE, params=params, timeout=20, headers=_FRED_HEADERS)
     resp.raise_for_status()
     return parse_fred_csv(resp.text)
+
+
+# FRED's CDN 503s browser-style and custom UAs (the shared session sends a browser
+# UA for Yahoo), but accepts a plain library UA. Yahoo and FRED have *opposite* UA
+# requirements, so every FRED request must override the session default with this.
+_FRED_HEADERS = {"User-Agent": "python-requests/2.31.0"}
