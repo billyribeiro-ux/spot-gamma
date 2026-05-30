@@ -1,0 +1,52 @@
+name: desktop (macOS)
+
+# Builds the Tauri 2 macOS app/.dmg. The Linux dev sandbox can't produce a
+# signed macOS binary, so this is where the desktop artifact is built. Trigger
+# manually or on a version tag. Add APPLE_* secrets to enable signing/notarizing.
+on:
+  workflow_dispatch:
+  push:
+    tags: ["v*"]
+
+jobs:
+  build-macos:
+    runs-on: macos-14
+    defaults:
+      run:
+        working-directory: dashboard
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: dashboard/package-lock.json
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-apple-darwin,x86_64-apple-darwin
+
+      - name: Install JS deps
+        run: npm ci
+
+      - name: Build static frontend
+        run: npm run build:desktop
+
+      - name: Build Tauri app (.app + .dmg)
+        run: npm run tauri -- build --target universal-apple-darwin
+        env:
+          # Optional signing/notarization — no-ops if unset (unsigned local build).
+          APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
+          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+          APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: spot-gamma-macos
+          path: |
+            dashboard/src-tauri/target/universal-apple-darwin/release/bundle/dmg/*.dmg
+            dashboard/src-tauri/target/universal-apple-darwin/release/bundle/macos/*.app

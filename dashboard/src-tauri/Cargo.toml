@@ -1,0 +1,25 @@
+[package]
+name = "spot-gamma"
+version = "0.2.0"
+description = "Spot Gamma — options dealer-gamma dashboard"
+authors = ["Spot Gamma"]
+edition = "2021"
+rust-version = "1.77.2"
+
+# The lib is the real entry point (also lets a future mobile target reuse it);
+# main.rs just calls into it.
+[lib]
+name = "spot_gamma_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+[features]
+# enabled by `tauri dev`/`tauri build` to switch the webview to the dev server
+custom-protocol = ["tauri/custom-protocol"]

@@ -43,9 +43,11 @@ ADMIN_TOKEN = os.environ.get("SPOTGAMMA_ADMIN_TOKEN")
 
 
 def _allowed_origins() -> list[str]:
+    # Dashboard dev server + the Tauri desktop webview origins (macOS/Windows/Linux).
     raw = os.environ.get(
         "SPOTGAMMA_ALLOWED_ORIGINS",
-        "http://localhost:5173,http://127.0.0.1:5173",
+        "http://localhost:5173,http://127.0.0.1:5173,"
+        "tauri://localhost,http://tauri.localhost,https://tauri.localhost",
     )
     return [o.strip() for o in raw.split(",") if o.strip()]
 

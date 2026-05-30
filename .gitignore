@@ -23,6 +23,10 @@ levels.json
 instance/
 credentials.json
 
+# Tauri desktop build artifacts (generated)
+dashboard/src-tauri/target/
+dashboard/src-tauri/gen/
+
 # OS / editor
 .DS_Store
 .idea/

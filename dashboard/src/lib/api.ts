@@ -1,7 +1,9 @@
 import type { GammaLevels, History, Symbol, Timeframe } from './types';
 
-// Vite proxies /api -> FastAPI backend (see vite.config.ts).
-const BASE = '/api';
+// On the web, vite proxies /api -> FastAPI (see vite.config.ts). The bundled
+// desktop app has no proxy, so it sets VITE_API_BASE to the backend URL.
+export const API_BASE = import.meta.env.VITE_API_BASE ?? '/api';
+const BASE = API_BASE;
 
 export async function fetchLevels(symbol: Symbol): Promise<GammaLevels> {
 	const res = await fetch(`${BASE}/levels/${symbol}`);

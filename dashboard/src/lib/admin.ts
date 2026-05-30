@@ -35,7 +35,9 @@ export interface TestResult {
 	latency_ms: number;
 }
 
-const BASE = '/api/admin';
+import { API_BASE } from './api';
+
+const BASE = `${API_BASE}/admin`;
 
 export async function getSources(): Promise<AdminSources> {
 	const r = await fetch(`${BASE}/sources`);
