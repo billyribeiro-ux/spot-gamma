@@ -136,13 +136,15 @@ def test_gamma_modifier_range():
 def test_weights_match_documented_table():
     # The doc (§5 table) is the source of truth; assert each value, not just the sum.
     assert WEIGHTS == {
-        "vix": 0.20,
-        "term_structure": 0.20,
-        "vvix": 0.10,
-        "credit": 0.25,
-        "dollar": 0.10,
+        "vix": 0.18,
+        "term_structure": 0.18,
+        "vvix": 0.08,
+        "credit": 0.22,
+        "breadth": 0.15,
+        "put_call": 0.05,
+        "dollar": 0.08,
         "yield_curve": 0.00,  # context flag — not summed
-        "gamma_sign": 0.15,
+        "gamma_sign": 0.06,
     }
     # the summed weights (excluding the 0.0 context flag) total 1.0
     assert abs(sum(WEIGHTS.values()) - 1.0) < 1e-9

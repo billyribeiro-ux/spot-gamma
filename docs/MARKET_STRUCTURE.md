@@ -185,21 +185,27 @@ single opaque number):
    KC Fed RORO template (credit + vol + FX + curve). Initial signal set and
    orientation:
 
-   | Signal | Risk-off direction | Initial weight* |
+   | Signal | Risk-off direction | Weight* |
    |---|---|---|
-   | VIX level (z) | high | 0.20 |
-   | VIX term structure (ratio−1) | backwardation (positive) | 0.20 |
-   | VVIX/VIX divergence | high | 0.10 |
-   | HY OAS (z + rate-of-change) | widening | 0.25 |
-   | 2s10s | (context flag, not summed — see caveats) | 0.00 |
-   | DXY trend + RoC | regime-dependent (smile) → signed by context | 0.10 |
-   | Dealer gamma sign | negative | 0.15 |
+   | VIX level | high | 0.18 |
+   | VIX term structure | backwardation | 0.18 |
+   | VVIX (own baseline + divergence) | high | 0.08 |
+   | HY OAS (level + rate-of-change) | widening | 0.22 |
+   | Breadth (% > 200/50-DMA) | narrow/washed-out | 0.15 |
+   | Put/call (z-scored, contrarian) | complacent (low) | 0.05 |
+   | DXY trend + RoC | regime-dependent (smile) | 0.08 |
+   | 2s10s | (context flag — displayed, **not summed**) | 0.00 |
+   | Dealer gamma sign | negative | 0.06 |
 
    *Weights are an explicit, documented prior — **not** fit to returns (that would
-   be overfit on a short sample). They reflect signal reliability: credit and vol
-   highest; the dollar lowest (sign-flips); the curve held out as a **context flag**
-   (it's a slow recession prior, wrong sign intraday). Weights live in one constant
-   in the code and cite this table.
+   be overfit on a short sample). They reflect signal reliability: credit, vol and
+   **breadth** highest (breadth is mechanically hardest to fake — § breadth
+   research); put/call lowest among the summed signals (noisy, drifting baseline,
+   contrarian sign-flips are error-prone); the dollar low (sign-flips); the curve
+   held out as a **context flag** (slow recession prior, wrong sign intraday). The
+   weights renormalize over whichever signals are present, so breadth/put-call/
+   gamma being unavailable degrades gracefully. They live in one constant in the
+   code and cite this table.
 
 2. **Gamma modifier** — scales *conviction*, **never the sign**, in `[0.5 … 1.5]`
    by net-GEX sign/magnitude and distance to flip (deep positive → 0.5 = pinned,
@@ -262,17 +268,33 @@ event?" **Hard line between deterministic and feed-required:**
 - Event flags gate **volatility/uncertainty** (verifiable: |daily return| is higher
   on FOMC/CPI/NFP days), **not direction**.
 
-## 7. Planned extensions (documented gaps, not shipped)
+## 7. Extensions — logic built, live data deferred
 
-- **Breadth** (% above 50/200-DMA, constituent A/D, McClellan, NH-NL) — no clean
-  free feed; build by self-computing from ~500 S&P/Nasdaq constituents (free
-  constituent list + existing OHLC pipeline). Highest-value missing signal.
-- **Equity put/call** — FRED series dead post-2019, CBOE JSON 403s; build a proxy
-  from Yahoo option-chain volumes, threshold by rolling percentile (absolutes have
-  drifted).
-- **FOMC/CPI/PCE/GDP feeds** — wire the Fed/BLS/BEA schedules for the event module.
+The scoring logic for these is **built and unit-tested** (pure functions); each
+is wired into the composite and degrades gracefully until its live data source is
+connected. The deferred piece is only the data fetch, not the methodology.
+
+- **Breadth** (`breadth.py`) — `compute_breadth` derives % above 50/200-DMA and a
+  constituent advance/decline from per-symbol closes; `breadth_signal` scores it
+  (>60% above 200-DMA = broad/risk-on, <40% = narrow/risk-off). **Deferred:** the
+  ~500-constituent close fetch (free constituent list + the existing Yahoo OHLC
+  pipeline). Weighted 0.15 (highest after credit/vol — hardest to fake).
+- **Put/call** (`putcall.py`) — `put_call_proxy` + `zscore` + `put_call_signal`
+  build a contrarian, **z-scored** sentiment read (high put/call = fear =
+  contrarian risk-on), never absolute thresholds. **Deferred:** summing put vs
+  call option-chain volumes from the chain we already pull. Weighted 0.05 (noisy).
+- **Event calendar** (`calendar.py`) — `event_risk` is a *dispersion* gate (not
+  directional): OPEX/triple-witching/NFP-heuristic/holidays are computed from the
+  date; FOMC/CPI/PCE/GDP come from a `scheduled_events` mapping and are **never
+  formula-faked**. **Deferred:** wiring the Fed/BLS/BEA schedule file.
+- **Seasonality** (`calendar.py`) — `seasonality` emits a small, capped tilt from
+  the *credible* effects only (turn-of-month + faint pre-holiday); day-of-week /
+  Santa / September / Sell-in-May are excluded from the return score. Fully built.
+- **Gap statistics** (`gaps.py`) — `compute_gap_stats` reports **size-conditioned**
+  fill rates from daily OHLC (never the misleading blended "70%"). **Deferred:**
+  feeding it the SPY daily-OHLC history we already fetch.
 - **Calibrated weights / backtest** — does the composite add information *over
-  gamma alone*? The §5 weights are a documented prior until this is run.
+  gamma alone*? The §5 weights remain a documented prior until this is run.
 
 ## 8. Build sequence
 

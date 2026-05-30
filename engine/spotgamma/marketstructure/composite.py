@@ -29,13 +29,15 @@ from .signals import Signal, gamma_modifier
 # modifier is its volatility-regime gate; we keep both but never let the modifier
 # touch the signed score, avoiding the compounding §5(b) warns about).
 WEIGHTS: dict[str, float] = {
-    "vix": 0.20,
-    "term_structure": 0.20,
-    "vvix": 0.10,
-    "credit": 0.25,
-    "dollar": 0.10,
+    "vix": 0.18,
+    "term_structure": 0.18,
+    "vvix": 0.08,
+    "credit": 0.22,
+    "breadth": 0.15,
+    "put_call": 0.05,
+    "dollar": 0.08,
     "yield_curve": 0.00,  # context flag — displayed, not summed
-    "gamma_sign": 0.15,
+    "gamma_sign": 0.06,
 }
 
 # Keys whose signal is shown for context but excluded from the weighted RORO sum.
