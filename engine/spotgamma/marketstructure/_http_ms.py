@@ -10,11 +10,17 @@ import threading
 
 _local = threading.local()
 
+# Fail-fast policy: these feeds are cached (MS_TTL) and degrade gracefully, so
+# patient retrying is wrong here. Crucially, respect_retry_after_header=False —
+# Yahoo's 429s carry Retry-After of 60s+, which once turned a single read into
+# ~90s of dutiful waiting. Two quick attempts with a capped backoff, then degrade.
 _RETRY_KW = {
-    "total": 3,
-    "backoff_factor": 0.5,
+    "total": 2,
+    "backoff_factor": 0.3,
+    "backoff_max": 2.0,
     "status_forcelist": (429, 500, 502, 503, 504),
     "raise_on_status": False,
+    "respect_retry_after_header": False,
 }
 
 

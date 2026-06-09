@@ -63,7 +63,7 @@ def fetch_series(series_id: str, observation_start: str | None = None) -> list[F
     params = {"id": series_id}
     if observation_start:
         params["cosd"] = observation_start
-    resp = session().get(_BASE, params=params, timeout=20, headers=_FRED_HEADERS)
+    resp = session().get(_BASE, params=params, timeout=8, headers=_FRED_HEADERS)
     resp.raise_for_status()
     return parse_fred_csv(resp.text)
 

@@ -112,7 +112,7 @@ def fetch_constituent_closes(symbols: list[str] | None = None) -> dict[str, list
             closes = [c for c in quote.get("close", []) if c is not None]
             if closes:
                 out[sym] = closes
-        except Exception:
+        except Exception:  # nosec B112 — one symbol failing must not sink breadth (documented degradation)
             continue
     return out
 
@@ -176,7 +176,7 @@ def fetch_put_call_volumes(symbols: list[str] | None = None, n_expirations: int 
                 call_vol += c2
             total_put += put_vol
             total_call += call_vol
-        except Exception:
+        except Exception:  # nosec B112 — one symbol failing must not sink the P/C proxy (documented degradation)
             continue
     return total_put, total_call
 
@@ -191,7 +191,7 @@ def update_put_call_history(
     tolerant read (a missing/corrupt file starts fresh) following ``api/store.py``.
     Returns the chronological ratios in the trailing ``window`` for z-scoring.
     """
-    p = Path(path or os.environ.get("SPOTGAMMA_PUTCALL", _default_putcall_path()))
+    p = Path(path) if path else Path(os.environ.get("SPOTGAMMA_PUTCALL") or _default_putcall_path())
     day = (today or date.today()).isoformat()
 
     hist = _read_put_call_history(p)

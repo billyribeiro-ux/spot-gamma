@@ -83,8 +83,8 @@ def compose(
     is down) the gamma directional vote is excluded and the modifier is a neutral
     1.0, so the macro/vol read still computes.
     """
-    has_gamma = net_gex is not None and spot is not None
-
+    # Explicit narrowing (not a boolean flag) so the gamma branch is type-proven:
+    # inside this block net_gex/spot are float, never None.
     weighted = 0.0
     total_w = 0.0
     for sig in signals:
@@ -93,24 +93,24 @@ def compose(
         w = WEIGHTS.get(sig.key, 0.0)
         weighted += w * sig.score
         total_w += w
-    if has_gamma:
+
+    modifier = 1.0  # neutral when gamma data is unavailable
+    flip_risk = False
+    if net_gex is not None and spot is not None:
         # Gamma's directional vote (negative gamma = risk-off) at the gamma_sign weight.
         negative_regime = net_gex < 0 or (zero_gamma is not None and spot < zero_gamma)
         weighted += WEIGHTS["gamma_sign"] * (1.0 if negative_regime else -1.0)
         total_w += WEIGHTS["gamma_sign"]
+        # The modifier scales *conviction*, never the sign. Deep negative gamma
+        # (~1.5) amplifies how hard to act on whatever the RORO read is; deep
+        # positive gamma (~0.5) dampens it (pinned/mean-reverting fades extremes).
+        modifier = gamma_modifier(net_gex, spot, zero_gamma)
+        flip_risk = zero_gamma is not None and spot > 0 and abs(spot - zero_gamma) / spot < 0.01
 
     roro = weighted / total_w if total_w else 0.0
-
-    # The modifier scales *conviction*, never the sign. Deep negative gamma
-    # (modifier ~1.5) amplifies how hard to act on whatever the RORO read is;
-    # deep positive gamma (~0.5) dampens it (pinned/mean-reverting fades extremes).
-    # No gamma data -> neutral 1.0.
-    modifier = gamma_modifier(net_gex, spot, zero_gamma) if has_gamma else 1.0
     actionability = abs(roro) * modifier
     sign = 1.0 if roro > 0 else (-1.0 if roro < 0 else 0.0)
     regime_score = max(-1.5, min(1.5, sign * actionability))
-
-    flip_risk = has_gamma and zero_gamma is not None and spot > 0 and abs(spot - zero_gamma) / spot < 0.01
 
     # Divergence: among signals with a meaningful read, do they disagree in sign?
     # Requires at least two opinionated signals (a lone signal can't "diverge").

@@ -41,7 +41,7 @@ def build_market_structure(
     Gamma inputs are optional: when the chain feed is unavailable, the macro/vol
     read still computes (the gamma vote/gate are simply excluded — see compose).
     """
-    from .fred import fetch_series, latest
+    from .fred import fetch_series
     from .quotes import fetch_quote
 
     inputs: dict[str, float | None] = {}
@@ -60,7 +60,7 @@ def build_market_structure(
         if err or not pts:
             unavailable.append(key)
             return None
-        val = latest(pts).value
+        val = pts[-1].value  # fetch_series is chronological; pts is non-empty here
         inputs[key] = val
         return val
 
@@ -183,5 +183,5 @@ def _gap_context() -> dict:
         "today_gap_pct": gs.today_gap_pct,
         "today_bucket": gs.today_bucket,
         "today_fill_probability": gs.today_fill_probability,
-        "buckets": [{"bucket": b.bucket, "count": b.count, "fill_rate": b.fill_rate} for b in gs.buckets],
+        "buckets": [{"bucket": b.bucket, "count": b.n, "fill_rate": b.fill_rate} for b in gs.buckets],
     }

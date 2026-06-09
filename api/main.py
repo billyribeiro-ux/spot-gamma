@@ -198,6 +198,9 @@ def market_structure(symbol: str = Query(default="SPX"), source: str | None = Qu
     # Gamma degrades gracefully: if the chain feed is down the macro/vol read still
     # computes (gamma vote/gate excluded), per the endpoint's contract.
     gamma_available = True
+    gx: float | None
+    spot: float | None
+    flip: float | None
     try:
         levels = _get_levels(symbol, src)
         gx, spot, flip = levels.net_gex, levels.spot, levels.zero_gamma

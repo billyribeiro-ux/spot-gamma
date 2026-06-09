@@ -30,13 +30,13 @@ class Quote(NamedTuple):
 
     @property
     def change(self) -> float | None:
-        if self.prev_close in (None, 0):
+        if self.prev_close is None or self.prev_close == 0:
             return None
         return self.price - self.prev_close
 
     @property
     def change_pct(self) -> float | None:
-        if self.prev_close in (None, 0):
+        if self.prev_close is None or self.prev_close == 0:
             return None
         return (self.price - self.prev_close) / self.prev_close * 100.0
 
@@ -62,7 +62,7 @@ def fetch_quote(ticker: str) -> Quote:
     resp = session().get(
         _CHART_URL.format(ticker=ticker),
         params={"interval": "1d", "range": "5d"},
-        timeout=20,
+        timeout=8,
     )
     resp.raise_for_status()
     return parse_yahoo_quote(resp.json())

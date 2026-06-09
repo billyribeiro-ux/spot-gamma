@@ -14,10 +14,12 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-live = ["requests>=2.31"]                       # cboe, tradier, schwab, polygon, thetadata
-stream = ["requests>=2.31", "websockets>=12.0"]  # tastytrade (DXLink)
+# urllib3 is imported directly (retry/backoff in sources/_http.py, _http_ms.py);
+# the >=2.7.0 floor clears PYSEC-2026-141/142.
+live = ["requests>=2.31", "urllib3>=2.7.0"]      # cboe, tradier, schwab, polygon, thetadata
+stream = ["requests>=2.31", "urllib3>=2.7.0", "websockets>=12.0"]  # tastytrade (DXLink)
 api = ["fastapi>=0.110", "uvicorn[standard]>=0.27"]
-dev = ["pytest>=8.0"]
+dev = ["pytest>=8.0", "mypy>=1.19", "types-requests"]
 
 [project.scripts]
 spotgamma = "spotgamma.cli:main"

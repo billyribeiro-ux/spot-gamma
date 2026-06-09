@@ -36,7 +36,7 @@ _DEAD_ZONE = 0.0005  # |gap| below this is rounding noise, not a gap
 
 class GapBucket(NamedTuple):
     bucket: str
-    count: int
+    n: int  # sample size ("n" — a field named "count" would shadow tuple.count)
     fill_rate: float | None  # None when the cell is empty
     median_abs_gap_pct: float | None
 

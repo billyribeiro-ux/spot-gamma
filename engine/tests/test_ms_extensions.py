@@ -94,11 +94,11 @@ def test_gap_fill_is_size_conditioned_not_blended():
     gs = compute_gap_stats(bars)
     small = next(b for b in gs.buckets if b.bucket == "0.05-0.25%")
     large = next(b for b in gs.buckets if b.bucket == ">=2%")
-    assert small.count == 10 and small.fill_rate == 1.0
-    assert large.count == 5 and large.fill_rate == 0.0  # the headline-70% trap avoided
+    assert small.n == 10 and small.fill_rate == 1.0
+    assert large.n == 5 and large.fill_rate == 0.0  # the headline-70% trap avoided
     # empty buckets report None, not a fake 0
     mid = next(b for b in gs.buckets if b.bucket == "0.5-1%")
-    assert mid.count == 0 and mid.fill_rate is None
+    assert mid.n == 0 and mid.fill_rate is None
 
 
 def test_gap_dead_zone_ignores_noise():
