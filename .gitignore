@@ -8,6 +8,11 @@ dist/
 .pytest_cache/
 .venv/
 venv/
+.coverage
+.coverage.*
+htmlcov/
+.mypy_cache/
+.ruff_cache/
 
 # Node / SvelteKit
 node_modules/

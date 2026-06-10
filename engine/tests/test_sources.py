@@ -268,3 +268,31 @@ def test_normalize_iv_heuristic():
     assert normalize_iv(0) is None
     assert normalize_iv("NaN") is None  # non-numeric string
     assert normalize_iv(2.5) == 2.5  # 250% stays decimal (below the % threshold)
+
+
+def test_build_source_constructs_every_credentialed_branch():
+    # build_source's per-source branches construct without network when given
+    # credentials (constructors only validate presence). Covers the branches
+    # that were previously untested (specs.py build_source body).
+    builders = {
+        "tradier": {"token": "x"},
+        "schwab": {"token": "x"},
+        "polygon": {"api_key": "x"},
+        "tastytrade": {"username": "u", "password": "p"},
+    }
+    for name, creds in builders.items():
+        src = build_source(name, creds)
+        assert src.name == name
+    # no-credential sources
+    assert build_source("cboe").name == "cboe"
+    assert build_source("sample").name == "sample"
+    # thetadata's base_url is optional (defaults to the local terminal)
+    assert build_source("thetadata", {}).name == "thetadata"
+
+
+def test_build_source_credentialed_sources_raise_without_creds():
+    # Each credentialed source raises a clear error when neither creds nor env
+    # are supplied — the documented fail-closed behavior.
+    for name in ("tradier", "schwab", "polygon", "tastytrade"):
+        with pytest.raises(RuntimeError):
+            build_source(name, {})

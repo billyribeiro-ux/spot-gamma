@@ -14,12 +14,15 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-# urllib3 is imported directly (retry/backoff in sources/_http.py, _http_ms.py);
-# the >=2.7.0 floor clears PYSEC-2026-141/142.
-live = ["requests>=2.31", "urllib3>=2.7.0"]      # cboe, tradier, schwab, polygon, thetadata
-stream = ["requests>=2.31", "urllib3>=2.7.0", "websockets>=12.0"]  # tastytrade (DXLink)
+# Transitive-dependency CVE floors, enforced so the resolver can never regress:
+#   urllib3>=2.7.0  — imported directly for retry/backoff; clears PYSEC-2026-141/142.
+#   idna>=3.15      — transitive via requests/httpx; clears CVE-2026-45409.
+# (Verified clean: a fresh venv of engine[live,stream,api] reports
+#  pip-audit "No known vulnerabilities found".)
+live = ["requests>=2.31", "urllib3>=2.7.0", "idna>=3.15"]  # cboe, tradier, schwab, polygon, thetadata
+stream = ["requests>=2.31", "urllib3>=2.7.0", "idna>=3.15", "websockets>=12.0"]  # tastytrade (DXLink)
 api = ["fastapi>=0.110", "uvicorn[standard]>=0.27"]
-dev = ["pytest>=8.0", "mypy>=1.19", "types-requests"]
+dev = ["pytest>=8.0", "mypy>=1.19", "types-requests", "bandit>=1.8", "pip-audit>=2.7"]
 
 [project.scripts]
 spotgamma = "spotgamma.cli:main"
@@ -30,3 +33,7 @@ include = ["spotgamma*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+
+[tool.bandit]
+# Scan shipped code only; tests legitimately use `assert` (B101).
+exclude_dirs = ["tests"]

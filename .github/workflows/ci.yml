@@ -29,6 +29,15 @@ jobs:
         run: ruff check engine api && ruff format --check engine api
       - name: Type-check
         run: python -m mypy engine/spotgamma api --ignore-missing-imports
+      - name: Security (bandit SAST)
+        run: bandit -c engine/pyproject.toml -r engine/spotgamma api -q
+      - name: Security (dependency CVE audit)
+        # Runs on a clean runner, so this audits only our installed dependency
+        # closure (engine[...] above) — not any host baseline. Verified clean.
+        # No --strict: it conflicts with --skip-editable (the editable spotgamma
+        # package counts as a "skip" and would fail the run); the bare form still
+        # exits non-zero on a real CVE, which is the meaningful gate.
+        run: pip-audit --skip-editable
       - name: Test
         run: pytest -q
 
