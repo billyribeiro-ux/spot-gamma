@@ -67,6 +67,9 @@
 	// γ-modifier (0.5…1.5) → conviction phrase on the volatility-regime axis.
 	const gammaPhrase = (m: number) =>
 		m >= 1.15 ? 'trending — act harder' : m <= 0.85 ? 'pinned — fade extremes' : 'neutral';
+
+	// Format a fractional return as a signed percentage, e.g. 0.0182 → "+1.82%".
+	const retPct = (n: number, digits = 2) => `${n >= 0 ? '+' : ''}${(n * 100).toFixed(digits)}%`;
 </script>
 
 <svelte:head><title>Spot Gamma — Market Structure · {symbol}</title></svelte:head>
@@ -221,6 +224,69 @@
 				<p class="unavail">unavailable signals: {ms.unavailable.join(', ')}</p>
 			{/if}
 		</section>
+
+		<!-- 2b · learned overlay (§7) — only when a validated model artifact exists -->
+		{#if ms.learned}
+			<section class="panel block learned" in:fly={enter(2)}>
+				<div class="block-head">
+					<h2>Learned overlay</h2>
+					<span class="block-sub">§7 · out-of-sample validated — measured, not a forecast</span>
+				</div>
+				<div class="ctx-lead">
+					<span class="ctx-pill">{ms.learned.horizon}d horizon</span>
+					<span class="ctx-sc mono">OOS IC {signed(ms.learned.oos_ic)}</span>
+					{#if ms.learned.trained_through}
+						<span class="ctx-sc">trained through {ms.learned.trained_through}</span>
+					{/if}
+				</div>
+				<div class="learned-grid">
+					<div class="stat">
+						<span class="k">Weights</span>
+						{#if ms.learned.adopt_weights}
+							<span class="v" style:font-size="0.95rem">calibrated (beat prior OOS)</span>
+							<span class="sub-k">reliability-reweighted, shrunk to the §5 prior</span>
+						{:else}
+							<span class="v" style:font-size="0.95rem">documented prior</span>
+							<span class="sub-k">calibrated weights did not beat the prior OOS</span>
+						{/if}
+					</div>
+					<div class="stat">
+						<span class="k">{ms.learned.horizon}d return tilt</span>
+						{#if ms.learned.adopt_tilt && ms.learned.tilt_fwd_return != null}
+							<span
+								class="v mono"
+								style:color={scoreColor(-ms.learned.tilt_fwd_return)}
+								title="A contrarian ridge estimate of the forward return — a separate overlay, never merged into the regime read."
+							>
+								{retPct(ms.learned.tilt_fwd_return)}
+							</span>
+							<span class="sub-k">contrarian ridge estimate (separate from the regime read)</span>
+						{:else}
+							<span class="v na">not adopted</span>
+							<span class="sub-k">no out-of-sample edge cleared the floor</span>
+						{/if}
+					</div>
+					{#if ms.learned.calibration}
+						<div class="stat">
+							<span class="k">This regime, historically</span>
+							<span class="v mono" style:color={scoreColor(-ms.learned.calibration.mean_fwd)}>
+								{retPct(ms.learned.calibration.mean_fwd)}
+							</span>
+							<span class="sub-k">
+								mean {ms.learned.horizon}d fwd · {pct(ms.learned.calibration.pct_positive)} positive · n={ms
+									.learned.calibration.n}
+							</span>
+						</div>
+					{/if}
+				</div>
+				<p class="note">
+					The composite carries real but <strong>contrarian</strong> forward-return information at this
+					horizon (a risk-off reading has preceded higher returns — mean reversion). The regime read
+					above still describes <strong>state, not return</strong>; this overlay is adopted only where it
+					beats the documented prior out-of-sample, and is shown separately on purpose.
+				</p>
+			</section>
+		{/if}
 
 		<!-- 3 · context: event risk, seasonality, gaps -->
 		<section class="ctx-grid">
@@ -804,6 +870,14 @@
 		color: var(--text-faint);
 	}
 
+	/* — learned overlay (§7) — */
+	.learned-grid {
+		display: grid;
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+		gap: 0.9rem;
+		margin: 0.4rem 0 0.2rem;
+	}
+
 	/* — context grid — */
 	.ctx-grid {
 		display: grid;
@@ -1006,6 +1080,9 @@
 	@media (max-width: 760px) {
 		.hero-stats {
 			grid-template-columns: repeat(2, minmax(0, 1fr));
+		}
+		.learned-grid {
+			grid-template-columns: 1fr;
 		}
 		.ctx-grid {
 			grid-template-columns: 1fr;

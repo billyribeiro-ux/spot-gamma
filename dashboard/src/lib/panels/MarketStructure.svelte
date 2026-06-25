@@ -38,6 +38,8 @@
 	};
 
 	const biasLabel = (b: string) => b.replace('-', ' ').toUpperCase();
+	// Fractional return → signed percentage, e.g. 0.0182 → "+1.82%".
+	const retPct = (n: number) => `${n >= 0 ? '+' : ''}${(n * 100).toFixed(2)}%`;
 </script>
 
 <div class="panel card">
@@ -83,6 +85,14 @@
 			{/if}
 			{#if ms.divergence}<span class="flag warn">⚠ signal divergence</span>{/if}
 			{#if ms.flip_transition_risk}<span class="flag warn">⚠ near gamma flip</span>{/if}
+			{#if ms.learned?.adopt_tilt && ms.learned.tilt_fwd_return != null}
+				<span
+					class="flag learned"
+					title="Out-of-sample-validated contrarian return tilt ({ms.learned.horizon}d). A separate overlay — never merged into the regime read."
+				>
+					tilt {ms.learned.horizon}d {retPct(ms.learned.tilt_fwd_return)}
+				</span>
+			{/if}
 		</div>
 
 		<!-- per-signal breakdown -->
@@ -259,6 +269,10 @@
 	.flag.warn {
 		color: var(--lvl-flip);
 		border-color: color-mix(in oklab, var(--lvl-flip) 40%, transparent);
+	}
+	.flag.learned {
+		color: var(--accent);
+		border-color: color-mix(in oklab, var(--accent) 40%, transparent);
 	}
 	.signals {
 		list-style: none;

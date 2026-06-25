@@ -54,6 +54,20 @@ test.describe('dashboard', () => {
 		await expect(page.locator('.spot-line')).toContainText('NDX', { timeout: 20_000 });
 	});
 
+	test('market-structure detail renders the regime read and the §7 learned overlay', async ({ page }) => {
+		await page.goto('/market-structure');
+		await expect(page.getByRole('heading', { name: 'Market Structure', level: 1 })).toBeVisible();
+		// the hero gauge renders once the API responds (sample gamma + macro feeds)
+		await expect(page.locator('.hero .bias')).toBeVisible({ timeout: 20_000 });
+		// the learned overlay renders deterministically from the committed fixture model
+		const learned = page.locator('section.learned');
+		await expect(learned.getByRole('heading', { name: 'Learned overlay' })).toBeVisible({
+			timeout: 20_000
+		});
+		await expect(learned).toContainText('20d horizon');
+		await expect(learned).toContainText('return tilt');
+	});
+
 	test('theme toggle switches to light and persists', async ({ page }) => {
 		await page.goto('/');
 		await expect(page.locator('.spot-line')).toBeVisible({ timeout: 20_000 });

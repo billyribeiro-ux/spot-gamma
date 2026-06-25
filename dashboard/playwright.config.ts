@@ -28,7 +28,10 @@ export default defineConfig({
 			env: {
 				PYTHONPATH: 'engine',
 				SPOTGAMMA_SOURCE: 'sample',
-				SPOTGAMMA_CONFIG: '/tmp/e2e-credentials.json'
+				SPOTGAMMA_CONFIG: '/tmp/e2e-credentials.json',
+				// A committed learned-model fixture so the §7 overlay renders
+				// deterministically (the real instance/ artifact is gitignored).
+				SPOTGAMMA_MODEL: 'dashboard/e2e/fixtures/learned_model.json'
 			}
 		},
 		{
