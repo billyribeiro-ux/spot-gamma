@@ -70,7 +70,7 @@ def build_snapshot(
                 expiration=datetime.strptime(meta.expiration, "%Y-%m-%d").date(),
                 open_interest=int(oi_by_sym.get(meta.streamer_symbol, 0)),
                 gamma=g.get("gamma"),
-                implied_volatility=normalize_iv(g.get("volatility")),
+                implied_volatility=normalize_iv(g.get("volatility"), "decimal"),
             )
         )
     return ChainSnapshot(symbol=symbol.upper(), spot=spot, timestamp=datetime.now(UTC), contracts=contracts)

@@ -24,6 +24,8 @@ class MarketStructure(NamedTuple):
     event_risk: dict | None = None  # {events, score, label}
     seasonality: dict | None = None  # {factors, tilt, label}
     gaps: dict | None = None  # {today_gap_pct, today_bucket, today_fill_probability, buckets}
+    # §7 learned overlay (only when a validated model artifact is present):
+    learned: dict | None = None  # {adopt_weights, adopt_tilt, tilt_fwd_return, calibration, ...}
 
 
 def _safe(fn, *args):
@@ -107,7 +109,12 @@ def build_market_structure(
     ratio = (vix / vix3m) if (vix and vix3m) else 1.0
     vr = S.vol_regime(vix or 20.0, ratio, vvix or 85.0)
 
-    read = compose(sigs, vol_regime_label=vr, net_gex=net_gex, spot=spot, zero_gamma=zero_gamma)
+    # §7 learned model: use calibrated weights only if they were adopted OOS
+    # (else the documented §5 prior), and surface the validated overlay.
+    model = _load_model_safe()
+    weights = _effective_weights(model)
+    read = compose(sigs, vol_regime_label=vr, net_gex=net_gex, spot=spot, zero_gamma=zero_gamma, weights=weights)
+    learned = _learned_overlay(model, sigs, read.roro_score)
 
     # §6 context (dispersion/tilt — computed from the date + OHLC, not the RORO).
     event_ctx, season_ctx, gap_ctx = _context_signals(unavailable)
@@ -119,7 +126,48 @@ def build_market_structure(
         event_risk=event_ctx,
         seasonality=season_ctx,
         gaps=gap_ctx,
+        learned=learned,
     )
+
+
+def _load_model_safe() -> dict | None:
+    """Load the learned artifact if present (never raises — absent model is normal)."""
+    try:
+        from ..learning.store import load_model
+
+        return load_model()
+    except Exception:
+        return None
+
+
+def _effective_weights(model: dict | None) -> dict | None:
+    from ..learning.model import effective_weights
+
+    return effective_weights(model) if model else None
+
+
+def _learned_overlay(model: dict | None, sigs: list, roro_score: float) -> dict | None:
+    """The validated learned overlay for display: tilt + calibration bucket.
+
+    Returns None when no model artifact exists. The tilt forward-return estimate
+    is only populated when the tilt was adopted OOS; the calibration bucket is the
+    empirical forward-return cell the current composite score falls into.
+    """
+    if not model:
+        return None
+    from ..learning.model import apply_tilt, calibration_lookup
+
+    scores = {s.key: s.score for s in sigs}
+    v = model.get("validation", {})
+    return {
+        "horizon": model.get("horizon"),
+        "trained_through": model.get("trained_through"),
+        "adopt_weights": v.get("adopt_weights"),
+        "adopt_tilt": v.get("adopt_tilt"),
+        "oos_ic": v.get("calibrated_oos_ic") if v.get("adopt_weights") else v.get("prior_oos_ic"),
+        "tilt_fwd_return": apply_tilt(model, scores),  # None unless tilt adopted
+        "calibration": calibration_lookup(model, roro_score),
+    }
 
 
 def _breadth_signal():
@@ -143,15 +191,19 @@ def _put_call_signal():
     ratio to a rolling history, and z-scores it. With <20 observations the signal
     correctly abstains (score 0) — the documented insufficient-history behavior.
     """
-    from .feeds import fetch_put_call_volumes, update_put_call_history
+    from .feeds import fetch_put_call_volumes, put_call_baseline, update_put_call_history
     from .putcall import PutCallStats, put_call_proxy, put_call_signal, zscore
 
     put_vol, call_vol = fetch_put_call_volumes()
     ratio = put_call_proxy(put_vol, call_vol)
     if ratio is None:
         raise RuntimeError("no put/call volume")
-    history = update_put_call_history(ratio)
-    z, pct = zscore(ratio, history)
+    # Z-score today's ratio against its PRIOR baseline (excluding today) so the
+    # observation isn't scored against a window that already contains it, then
+    # persist today for future baselines.
+    baseline = put_call_baseline()
+    z, pct = zscore(ratio, baseline)
+    update_put_call_history(ratio)
     return put_call_signal(PutCallStats(ratio=ratio, z=z, percentile=pct))
 
 

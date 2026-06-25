@@ -83,7 +83,7 @@ class TradierSource(ChainSource):
                         open_interest=int(o.get("open_interest") or 0),
                         volume=int(o.get("volume") or 0),
                         gamma=greeks.get("gamma"),
-                        implied_volatility=normalize_iv(greeks.get("mid_iv")),
+                        implied_volatility=normalize_iv(greeks.get("mid_iv"), "decimal"),
                         bid=o.get("bid"),
                         ask=o.get("ask"),
                     )

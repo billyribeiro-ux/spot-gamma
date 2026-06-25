@@ -114,9 +114,14 @@ walls, and Zero Gamma. We additionally break out **0DTE** (expires today) becaus
 its gamma is large, fast-decaying, and concentrates near ATM, dominating intraday
 pinning. 0DTE is reported separately rather than excluded.
 
-**0DTE gamma floor.** True 0DTE ATM gamma approaches a spike near expiry. The
-engine floors time-to-expiry in profile/fallback BS to keep gamma finite and the
-aggregates numerically stable.
+**0DTE gamma floor.** True 0DTE ATM gamma approaches a spike near expiry. `dte()`
+is true intraday ACT/365 — measured from the snapshot instant to the expiry's
+16:00 ET settlement, so a morning read carries more time than an afternoon one —
+**floored at `MIN_DTE_YEARS` (0.5/365)**. The floor keeps a same-day / at-expiry
+contract's gamma large but finite instead of collapsing to exactly zero, which
+would silently delete the dominant 0DTE leg from the profile (Zero Gamma / Vol
+Trigger) and the IV-only fallback path. (See `models.py`; regression-tested in
+`tests/test_audit_fixes.py`.)
 
 ## 6. Data sources
 

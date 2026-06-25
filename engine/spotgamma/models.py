@@ -30,6 +30,19 @@ CONTRACT_MULTIPLIER: dict[str, int] = {
 }
 DEFAULT_MULTIPLIER = 100
 
+# Minimum time-to-expiry (years) for the Black-Scholes gamma basis. METHODOLOGY
+# §3/§5 require the engine to floor T so a 0DTE / at-the-instant-of-expiry contract
+# keeps a large but FINITE gamma instead of collapsing to exactly zero. Without
+# this, every 0DTE leg (the dominant intraday gamma driver) silently vanished from
+# the profile and IV-fallback paths. 0.5/365 ≈ a half-session: small enough to keep
+# 0DTE gamma dominant, large enough to stay numerically stable.
+MIN_DTE_YEARS = 0.5 / 365.0
+
+# Listed options settle at the 16:00 ET cash close (PM settlement). AM-settled
+# standard SPX/NDX monthlies are a documented approximation — the dominant
+# 0DTE/weekly flow is PM-settled, and MIN_DTE_YEARS bounds any error at the front.
+_SETTLEMENT_HOUR = 16
+
 
 class OptionType(StrEnum):
     CALL = "call"
@@ -85,12 +98,26 @@ class ChainSnapshot(BaseModel):
         return ts.astimezone(_MARKET_TZ).date()
 
     def days_to_expiry(self, expiration: date) -> int:
-        """Whole calendar days to expiration on the ET trading calendar (>= 0)."""
+        """Whole calendar days to expiration on the ET trading calendar (>= 0).
+
+        For display (``dte_days``) and 0DTE session matching only; the
+        Black-Scholes time basis is :meth:`dte`.
+        """
         return max((expiration - self.session_date).days, 0)
 
     def dte(self, expiration: date) -> float:
-        """Time to expiration as a fraction of a year (ACT/365)."""
-        return self.days_to_expiry(expiration) / 365.0
+        """Time to expiration in years (ACT/365), floored at ``MIN_DTE_YEARS``.
+
+        Intraday-aware: measured from the snapshot instant to the expiry's 16:00
+        ET settlement, so a morning snapshot carries more time than an afternoon
+        one and a same-day expiry decays smoothly toward — but never reaches — the
+        floor (rather than the old whole-day count that collapsed 0DTE to 0.0 and
+        silently deleted its gamma from the profile / IV-fallback paths).
+        """
+        settle = datetime(expiration.year, expiration.month, expiration.day, _SETTLEMENT_HOUR, tzinfo=_MARKET_TZ)
+        ts = self.timestamp if self.timestamp.tzinfo else self.timestamp.replace(tzinfo=ZoneInfo("UTC"))
+        years = (settle - ts).total_seconds() / (365.0 * 86400.0)
+        return max(years, MIN_DTE_YEARS)
 
 
 class StrikeGamma(BaseModel):

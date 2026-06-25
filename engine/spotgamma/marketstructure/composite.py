@@ -73,6 +73,7 @@ def compose(
     net_gex: float | None = None,
     spot: float | None = None,
     zero_gamma: float | None = None,
+    weights: dict[str, float] | None = None,
 ) -> RegimeRead:
     """Combine per-signal scores + the gamma gate into the composite read.
 
@@ -82,7 +83,12 @@ def compose(
     When gamma is unavailable (``net_gex``/``spot`` is None — e.g. the chain feed
     is down) the gamma directional vote is excluded and the modifier is a neutral
     1.0, so the macro/vol read still computes.
+
+    ``weights`` defaults to the documented §5 prior (:data:`WEIGHTS`); a learned,
+    out-of-sample-validated weight set may be passed in (see
+    :mod:`spotgamma.learning`), but the prior remains the anchor and the default.
     """
+    w_map = weights or WEIGHTS
     # Explicit narrowing (not a boolean flag) so the gamma branch is type-proven:
     # inside this block net_gex/spot are float, never None.
     weighted = 0.0
@@ -90,7 +96,7 @@ def compose(
     for sig in signals:
         if sig.key in _CONTEXT_ONLY:
             continue  # displayed, not summed
-        w = WEIGHTS.get(sig.key, 0.0)
+        w = w_map.get(sig.key, 0.0)
         weighted += w * sig.score
         total_w += w
 
@@ -99,8 +105,9 @@ def compose(
     if net_gex is not None and spot is not None:
         # Gamma's directional vote (negative gamma = risk-off) at the gamma_sign weight.
         negative_regime = net_gex < 0 or (zero_gamma is not None and spot < zero_gamma)
-        weighted += WEIGHTS["gamma_sign"] * (1.0 if negative_regime else -1.0)
-        total_w += WEIGHTS["gamma_sign"]
+        gamma_w = w_map.get("gamma_sign", WEIGHTS["gamma_sign"])
+        weighted += gamma_w * (1.0 if negative_regime else -1.0)
+        total_w += gamma_w
         # The modifier scales *conviction*, never the sign. Deep negative gamma
         # (~1.5) amplifies how hard to act on whatever the RORO read is; deep
         # positive gamma (~0.5) dampens it (pinned/mean-reverting fades extremes).
@@ -114,7 +121,9 @@ def compose(
 
     # Divergence: among signals with a meaningful read, do they disagree in sign?
     # Requires at least two opinionated signals (a lone signal can't "diverge").
-    opinions = [s.score for s in signals if abs(s.score) > 0.2]
+    # Context-only signals (yield curve) are excluded — mirroring the RORO sum —
+    # so a slow recession prior can't fabricate or mask a divergence warning.
+    opinions = [s.score for s in signals if s.key not in _CONTEXT_ONLY and abs(s.score) > 0.2]
     divergence = len(opinions) >= 2 and not (all(v > 0 for v in opinions) or all(v < 0 for v in opinions))
 
     return RegimeRead(

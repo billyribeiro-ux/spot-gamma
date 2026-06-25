@@ -57,9 +57,9 @@ def _emit(exp_map: dict, opt_type: OptionType, out: list[OptionContract]) -> Non
                         open_interest=int(c.get("openInterest") or 0),
                         volume=int(c.get("totalVolume") or 0),
                         gamma=_clean(c.get("gamma")),
-                        # Schwab IV is percent points; normalize_iv handles the /100
-                        # and drops the -999 sentinel.
-                        implied_volatility=normalize_iv(c.get("volatility")),
+                        # Schwab IV is percent points; declare it so the /100 is
+                        # deterministic (not heuristic). Drops the -999 sentinel too.
+                        implied_volatility=normalize_iv(c.get("volatility"), "percent"),
                         bid=c.get("bid"),
                         ask=c.get("ask"),
                     )

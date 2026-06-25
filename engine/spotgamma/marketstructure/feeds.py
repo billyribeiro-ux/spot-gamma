@@ -204,6 +204,22 @@ def update_put_call_history(
     return ordered[-window:]
 
 
+def put_call_baseline(today: date | None = None, window: int = 252, path: str | None = None) -> list[float]:
+    """Trailing P/C history **excluding** ``today`` — the baseline to z-score
+    today's ratio against without self-reference.
+
+    A new observation must not be z-scored against a window that already contains
+    it (that shrinks its own z and biases the percentile). This read-only helper
+    returns the prior trailing window; persistence stays in
+    :func:`update_put_call_history`.
+    """
+    p = Path(path) if path else Path(os.environ.get("SPOTGAMMA_PUTCALL") or _default_putcall_path())
+    day = (today or date.today()).isoformat()
+    hist = _read_put_call_history(p)
+    ordered = [hist[k] for k in sorted(hist) if k != day]
+    return ordered[-window:]
+
+
 def _read_put_call_history(p: Path) -> dict[str, float]:
     if not p.exists():
         return {}

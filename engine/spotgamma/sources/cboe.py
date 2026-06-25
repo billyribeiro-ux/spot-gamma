@@ -56,7 +56,7 @@ def parse_cboe_payload(payload: dict, symbol: str) -> ChainSnapshot:
                 open_interest=int(o.get("open_interest") or 0),
                 volume=int(o.get("volume") or 0),
                 gamma=o.get("gamma"),
-                implied_volatility=normalize_iv(o.get("iv")),
+                implied_volatility=normalize_iv(o.get("iv"), "decimal"),
                 bid=o.get("bid"),
                 ask=o.get("ask"),
             )

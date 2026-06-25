@@ -10,7 +10,6 @@ refine that crossing below grid resolution with bisection.
 from __future__ import annotations
 
 from collections.abc import Callable
-from itertools import pairwise
 from typing import NamedTuple
 
 from .greeks import bs_gamma_array
@@ -63,6 +62,8 @@ def gamma_profile(
     net_fn: Callable[[float], float] | None = None,
 ) -> list[ProfilePoint]:
     """Net GEX evaluated across spot in ``[spot*(1-width), spot*(1+width)]``."""
+    if steps < 2:
+        raise ValueError("steps must be >= 2 to span a grid")
     net_at = net_fn or make_net_gex_fn(snap)
     lo, hi = snap.spot * (1 - width), snap.spot * (1 + width)
     spots = (lo + i * (hi - lo) / (steps - 1) for i in range(steps))
@@ -96,23 +97,36 @@ def find_zero_gamma(
 ) -> float | None:
     """Spot level where the net-GEX curve crosses zero, nearest to current spot.
 
-    Detects crossings by a strict sign change of ``g0*g1`` (an exact-zero node is
-    counted once, not double-counted) and guards the interpolation denominator.
-    When ``net_fn`` is supplied the chosen crossing is refined with bisection on
-    the real curve, so precision isn't capped by the grid step (~0.25% otherwise).
-    Returns ``None`` when the curve never changes sign across the grid.
+    Detects crossings by a strict sign change between adjacent points, and treats
+    an exact-zero node as a crossing **only when the curve genuinely changes sign
+    across it** (its nearest non-zero neighbours on each side have opposite signs).
+    That neighbour check is what stops a flat, identically-zero profile — e.g. a
+    chain with no OI, where ``net_at`` returns 0 everywhere — from reporting every
+    node as a spurious flip. When ``net_fn`` is supplied the chosen crossing is
+    refined with bisection on the real curve, so precision isn't capped by the grid
+    step (~0.25% otherwise). Returns ``None`` when the curve never changes sign.
     """
+    n = len(profile)
+    if n < 2:
+        return None
+    spots = [p.spot for p in profile]
+    gex = [p.net_gex for p in profile]
+
     # each crossing: (linear_estimate, bracket_lo, bracket_hi)
     crossings: list[tuple[float, float, float]] = []
-    for (s0, g0), (s1, g1) in pairwise(profile):
+    for i in range(n - 1):
+        g0, g1 = gex[i], gex[i + 1]
+        s0, s1 = spots[i], spots[i + 1]
         if g0 == 0.0:
-            crossings.append((s0, s0, s0))  # exact-zero node
-        elif g0 * g1 < 0 and g1 != g0:
+            # Real crossing iff the nearest non-zero values on each side straddle
+            # zero. A flat all-zero curve has no such neighbours -> no crossing.
+            left = next((g for g in reversed(gex[:i]) if g != 0.0), None)
+            right = next((g for g in gex[i + 1 :] if g != 0.0), None)
+            if left is not None and right is not None and (left > 0) != (right > 0):
+                crossings.append((s0, s0, s0))
+        elif g0 * g1 < 0:  # opposite signs -> denominator (g1 - g0) is nonzero
             est = s0 + (s1 - s0) * (-g0) / (g1 - g0)
             crossings.append((est, s0, s1))
-    if profile and profile[-1].net_gex == 0.0:
-        last = profile[-1].spot
-        crossings.append((last, last, last))
     if not crossings:
         return None
 

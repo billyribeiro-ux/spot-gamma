@@ -293,8 +293,39 @@ connected. The deferred piece is only the data fetch, not the methodology.
 - **Gap statistics** (`gaps.py`) — `compute_gap_stats` reports **size-conditioned**
   fill rates from daily OHLC (never the misleading blended "70%"). **Deferred:**
   feeding it the SPY daily-OHLC history we already fetch.
-- **Calibrated weights / backtest** — does the composite add information *over
-  gamma alone*? The §5 weights remain a documented prior until this is run.
+- **Calibrated weights / backtest** — ✅ **built** (`spotgamma/learning/`, §7.1).
+
+### 7.1 Self-learning layer — backtest, calibrated weights, return tilt
+
+The `learning/` package answers the standing question — *does the composite add
+information, and should the weights be learned rather than assumed?* — under
+strict out-of-sample discipline. It is run via `spotgamma backtest` and
+`spotgamma learn`, trains on a freshly-fetched ~10y free panel (FRED `VIXCLS`/
+`VXVCLS`/`BAMLH0A0HYM2`/`T10Y2Y`/`DTWEXBGS` + Yahoo `^VVIX`/`SPY`), and is
+**point-in-time** end to end: features at *t* use only data observable at *t*
+(trailing MAs/RoC never peek ahead), labels are forward SPY returns *t→t+h*.
+
+What it found (walk-forward, expanding-window, OOS — see `backtest.py`):
+
+- **The vol/macro composite carries real forward-return information**: OOS
+  information coefficient ≈ **+0.05 / +0.10 / +0.18 at 1 / 5 / 20 trading days**.
+- **The relationship is *contrarian***. Signals are oriented +1 = risk-off, so a
+  *positive* IC means a risk-off reading preceded *higher* forward returns — the
+  mean-reversion §2.1 flags for VIX, now measured. A naïve learner would silently
+  flip the sign and turn the regime descriptor into a contrarian timer; we do not.
+- **Calibrated weights are *rejected*.** Reliability-reweighting the signals
+  (∝ |IC|, shrunk to the §5 prior) does **not** beat the documented prior OOS, so
+  the live read keeps the §5 weights. The "learning" only deploys if it earns it.
+- **A ridge return-tilt is adopted only at the 20d horizon** (OOS IC ≈ 0.06–0.09),
+  surfaced as a **separate, explicitly-labeled** forward-return estimate — never
+  merged into the regime score, which still describes *state*, not return.
+
+Honesty rules: the regime orientation and weights are unchanged unless a learned
+variant beats the prior out-of-sample; every learned artifact records its
+adopt/reject decision and the OOS IC behind it; nothing claims to *predict*
+returns — these are measured, sample-sized relationships. The artifact lives in
+`instance/learned_model.json` (gitignored) and the live read attaches it as a
+`learned` overlay only when present.
 
 ## 8. Build sequence
 

@@ -79,12 +79,18 @@ def parse_yahoo_chart(payload: dict) -> tuple[list[Bar], dict]:
     q = ((r.get("indicators") or {}).get("quote") or [{}])[0]
     o, h, low, c, v = (q.get(k) or [] for k in ("open", "high", "low", "close", "volume"))
 
+    # Yahoo's parallel arrays are normally equal length, but a truncated/partial
+    # payload can return shorter quote arrays than `timestamp`; bound the loop to
+    # the shortest OHLC array so a ragged response degrades to fewer bars instead
+    # of raising IndexError. Volume is optional and defaults to 0 when absent.
     bars: list[Bar] = []
-    for i, t in enumerate(timestamps):
+    n = min(len(timestamps), len(o), len(h), len(low), len(c))
+    for i in range(n):
         op, hi, lo, cl = o[i], h[i], low[i], c[i]
         if None in (op, hi, lo, cl):
             continue  # skip gap buckets
-        bars.append(Bar(int(t), float(op), float(hi), float(lo), float(cl), float(v[i] or 0)))
+        vol = v[i] if i < len(v) else None
+        bars.append(Bar(int(timestamps[i]), float(op), float(hi), float(lo), float(cl), float(vol or 0)))
     summary = {
         "symbol": meta.get("symbol"),
         "currency": meta.get("currency"),

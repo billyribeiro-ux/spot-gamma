@@ -111,7 +111,7 @@ def parse_theta_bulk(greeks_payload: dict, oi_payload: dict, symbol: str) -> Cha
                 expiration=expiration,
                 open_interest=oi_by_contract.get(_contract_key(c), 0),
                 gamma=gamma if gamma else None,
-                implied_volatility=normalize_iv(iv),
+                implied_volatility=normalize_iv(iv, "decimal"),
             )
         )
     if not spot:

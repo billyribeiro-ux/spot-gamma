@@ -13,6 +13,7 @@ the raw ``value`` for display.
 
 from __future__ import annotations
 
+import math
 from typing import Literal, NamedTuple
 
 Bias = Literal["risk-on", "neutral", "risk-off"]
@@ -113,6 +114,8 @@ def vol_regime(vix: float, ratio: float, vvix: float) -> str:
     ``ratio`` is VIX/VIX3M (>=1 = backwardation); ``vvix`` is the VVIX *level*
     (the doc's "calm (normal if VVIX>120)" cell keys on the level, not a ratio).
     """
+    if not (math.isfinite(vix) and math.isfinite(ratio) and math.isfinite(vvix)):
+        return "normal"  # defined fallback on degenerate (NaN/inf) input
     backwardation = ratio >= 1.0
     if vix > 30:
         return "crisis" if backwardation else "stressed"
@@ -194,9 +197,14 @@ def gamma_modifier(net_gex: float, spot: float, zero_gamma: float | None) -> flo
     deep negative gamma (trending, amplified) -> 1.5; near the flip -> ~1.0 with a
     transition-risk flag handled by the caller.
     """
-    negative_regime = net_gex < 0 or (zero_gamma is not None and spot < zero_gamma)
+    if not math.isfinite(net_gex) or not math.isfinite(spot) or spot <= 0:
+        return 1.0  # neutral conviction on degenerate input (NaN/inf/non-positive spot)
+    # Narrow to a finite flip level (None when absent/NaN) so the distance term and
+    # the regime test both type-prove zero_gamma is a real float here.
+    flip = zero_gamma if (zero_gamma is not None and math.isfinite(zero_gamma)) else None
+    negative_regime = net_gex < 0 or (flip is not None and spot < flip)
     # distance to flip as a fraction of spot, capped — 0 at the flip, 1 at >=5% away
-    dist = min(abs(spot - zero_gamma) / spot, 0.05) / 0.05 if (zero_gamma and spot > 0) else 1.0
+    dist = min(abs(spot - flip) / spot, 0.05) / 0.05 if flip is not None else 1.0
     if negative_regime:
         return 1.0 + 0.5 * dist  # 1.0 -> 1.5
     return 1.0 - 0.5 * dist  # 1.0 -> 0.5

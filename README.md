@@ -28,12 +28,26 @@ key); live data is opt-in.
 ```bash
 cd engine
 pip install -e .
-pytest                                   # 27 engine tests
+pytest                                   # 138 engine tests
 spotgamma levels SPX --source sample     # print computed levels JSON
 spotgamma export-thinkscript SPX         # write thinkscript/spot_gamma_spx.ts
 ```
 
-Run `pytest` from the repo root to include the API hub tests too (35 total).
+Run `pytest` from the repo root to include the API hub tests too.
+
+### 1c. Self-learning layer — backtest & calibrated weights (free data)
+
+```bash
+spotgamma backtest --horizon 20   # OOS information coefficient + calibration table
+spotgamma learn --horizon 20      # train, walk-forward validate, persist the model
+```
+
+`backtest` measures, out-of-sample, whether the market-structure signals carry
+forward-return information (they do — contrarian, IC ≈ +0.18 at 20d). `learn`
+fits calibrated regime weights and a ridge return-tilt, **adopts them only if they
+beat the documented prior out-of-sample**, and writes a gitignored
+`instance/learned_model.json` the live read attaches as a `learned` overlay. See
+[`docs/MARKET_STRUCTURE.md`](docs/MARKET_STRUCTURE.md) §7.1.
 
 ### 1b. Real data, free, no account
 

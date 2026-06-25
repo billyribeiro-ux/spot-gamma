@@ -62,11 +62,18 @@ def observed_holiday(d: date) -> str | None:
     md = (d.month, d.day)
     if md in _FIXED_HOLIDAYS and d.weekday() < 5:
         return _FIXED_HOLIDAYS[md]
-    # Saturday holiday observed Friday; Sunday observed Monday.
-    if d.weekday() == 4 and (d.month, d.day + 1) in _FIXED_HOLIDAYS:
-        return _FIXED_HOLIDAYS[(d.month, d.day + 1)] + " (observed)"
-    if d.weekday() == 0 and (d.month, d.day - 1) in _FIXED_HOLIDAYS:
-        return _FIXED_HOLIDAYS[(d.month, d.day - 1)] + " (observed)"
+    # Saturday holiday observed the preceding Friday; Sunday observed the next
+    # Monday. Use real date arithmetic so month/year boundaries are handled —
+    # naive day±1 integer math missed a Friday Dec 31 (New Year's, observed) and
+    # a Monday in any month whose holiday fell on the 1st-of-month boundary.
+    if d.weekday() == 4:
+        nxt = d + timedelta(days=1)
+        if (nxt.month, nxt.day) in _FIXED_HOLIDAYS:
+            return _FIXED_HOLIDAYS[(nxt.month, nxt.day)] + " (observed)"
+    if d.weekday() == 0:
+        prev = d - timedelta(days=1)
+        if (prev.month, prev.day) in _FIXED_HOLIDAYS:
+            return _FIXED_HOLIDAYS[(prev.month, prev.day)] + " (observed)"
     return None
 
 
@@ -148,8 +155,10 @@ def _is_turn_of_month(d: date) -> bool:
     Approximation by calendar day (last 1 / first 3 business-ish days); the precise
     trading-day window can be layered when a market calendar is wired.
     """
-    # first 3 business days of the month
-    if d.day <= 5 and _business_day_index(d) < 3:
+    # first 3 business days of the month — weekday-gated so a Saturday/Sunday
+    # near the 1st isn't mislabeled turn-of-month (it is not a trading day, and
+    # _business_day_index returns -1 for a pre-business weekend date).
+    if d.weekday() < 5 and d.day <= 5 and _business_day_index(d) < 3:
         return True
     # last business day of the month
     return _is_last_business_day(d)

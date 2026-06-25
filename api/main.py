@@ -239,6 +239,7 @@ def market_structure(symbol: str = Query(default="SPX"), source: str | None = Qu
         "event_risk": ms.event_risk,
         "seasonality": ms.seasonality,
         "gaps": ms.gaps,
+        "learned": ms.learned,  # §7 learned overlay (None unless a model artifact is present)
         "inputs": ms.inputs,
         "unavailable": unavailable,
     }
