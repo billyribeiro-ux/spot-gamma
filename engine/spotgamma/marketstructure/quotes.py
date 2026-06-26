@@ -66,3 +66,30 @@ def fetch_quote(ticker: str) -> Quote:
     )
     resp.raise_for_status()
     return parse_yahoo_quote(resp.json())
+
+
+def parse_yahoo_closes(payload: dict) -> list[float]:
+    """Chronological daily closes from a Yahoo v8 chart payload (pure).
+
+    Drops null buckets (halted/illiquid sessions). Used for trend statistics
+    (e.g. the dollar's 200-DMA and 20-day rate-of-change) that a single quote
+    can't supply.
+    """
+    result = (payload.get("chart") or {}).get("result")
+    if not result:
+        return []
+    quote = ((result[0].get("indicators") or {}).get("quote") or [{}])[0]
+    return [float(c) for c in (quote.get("close") or []) if c is not None]
+
+
+def fetch_daily_closes(ticker: str, range_: str = "1y") -> list[float]:
+    """Daily close history for ``ticker`` (most recent last)."""
+    from ._http_ms import session
+
+    resp = session().get(
+        _CHART_URL.format(ticker=ticker),
+        params={"interval": "1d", "range": range_},
+        timeout=8,
+    )
+    resp.raise_for_status()
+    return parse_yahoo_closes(resp.json())

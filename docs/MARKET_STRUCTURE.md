@@ -327,6 +327,29 @@ returns — these are measured, sample-sized relationships. The artifact lives i
 `instance/learned_model.json` (gitignored) and the live read attaches it as a
 `learned` overlay only when present.
 
+**Scope of the backtest.** Only the signals with clean *free history* (vol +
+macro) are in the one-shot panel; breadth, put/call and the dealer-gamma sign have
+no free back-history, so they cannot be backtested from a single fetch.
+
+### 7.2 Feature-log accumulator — compounding to the full signal set
+
+`learning/featurelog.py` closes that gap the only honest way: `spotgamma
+record-features` appends the **live, point-in-time scores of every signal**
+(breadth / put-call / gamma-sign included) plus spot to a daily JSON log under
+`instance/` (gitignored, deduped by date, atomic). Run daily (e.g. cron), it
+accrues a genuine history; `log_to_dataset` then turns it into `FeatureRow`s with
+forward returns from the logged spot series, so the §7.1 IC / calibration /
+walk-forward machinery applies to **all** signals once enough days accumulate.
+Point-in-time is automatic — each score was computed live at its own day's close,
+and forward returns only read later rows.
+
+**Dollar signal wiring (fix).** The dollar is a direction/momentum signal (§3.2):
+without its 200-DMA + 20-day RoC it is permanently neutral. The live read now
+fetches DXY daily closes and computes both (point-in-time, degrading to neutral if
+the fetch fails), matching the backtest's dollar features exactly — previously the
+live read fed `None`/`None`, leaving the dollar inert yet weighted (a small
+distortion on every live RORO).
+
 ## 8. Build sequence
 
 1. ✅ **Research + this methodology doc** (gates everything).

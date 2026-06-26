@@ -46,6 +46,43 @@ def test_parse_yahoo_quote_errors_on_empty():
         parse_yahoo_quote({"chart": {"result": None, "error": {"code": "Not Found"}}})
 
 
+def test_parse_yahoo_closes_drops_nulls():
+    from spotgamma.marketstructure.quotes import parse_yahoo_closes
+
+    payload = {"chart": {"result": [{"indicators": {"quote": [{"close": [10.0, None, 12.5]}]}}]}}
+    assert parse_yahoo_closes(payload) == [10.0, 12.5]
+    assert parse_yahoo_closes({"chart": {"result": None}}) == []  # empty -> []
+
+
+def test_live_dollar_signal_uses_trend_and_roc(monkeypatch):
+    # Regression: read._dollar_signal must wire the 200-DMA + 20d RoC into the
+    # dollar signal (it was permanently neutral, fed None/None). With a rising
+    # series ending at a strong level, the score must be a real risk-off reading.
+    from spotgamma.marketstructure import read
+    from spotgamma.marketstructure.signals import dollar_signal
+
+    closes = [95.0 + 0.02 * i for i in range(252)]  # 252 sessions, gently rising
+    monkeypatch.setattr("spotgamma.marketstructure.quotes.fetch_daily_closes", lambda *a, **k: closes)
+    dxy = 105.0  # today, well above the 200-DMA and up vs 20d ago
+    got = read._dollar_signal(dxy)
+    ma200 = sum(closes[-200:]) / 200
+    roc = (dxy / closes[-21] - 1.0) * 100.0
+    assert got.score == dollar_signal(dxy, ma200, roc).score
+    assert got.score > 0  # strengthening dollar -> mild risk-off (not the old 0.0)
+
+
+def test_live_dollar_signal_degrades_when_history_fails(monkeypatch):
+    # If the DXY history fetch raises, fall back to the bare level (neutral), never crash.
+    from spotgamma.marketstructure import read
+
+    def boom(*a, **k):
+        raise RuntimeError("yahoo down")
+
+    monkeypatch.setattr("spotgamma.marketstructure.quotes.fetch_daily_closes", boom)
+    got = read._dollar_signal(100.0)
+    assert got.key == "dollar" and got.score == 0.0  # graceful neutral
+
+
 # --- volatility signals ----------------------------------------------------
 def test_vix_signal_bands():
     assert vix_signal(12).label == "calm" and vix_signal(12).score < 0

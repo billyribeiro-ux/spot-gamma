@@ -253,3 +253,90 @@ def test_load_model_missing_or_corrupt_is_none(tmp_path):
     bad = tmp_path / "bad.json"
     bad.write_text("{ not valid")
     assert load_model(str(bad)) is None
+
+
+# --- feature-log accumulator -----------------------------------------------
+def test_record_daily_persists_dedups_and_filters(tmp_path):
+    from spotgamma.learning.featurelog import load_log, record_daily
+
+    p = tmp_path / "feature_log.json"
+    record_daily({"vix": -0.5, "breadth": 0.2}, 5000.0, today=date(2026, 1, 5), path=str(p))
+    record_daily({"vix": 0.1, "breadth": -0.1}, 5010.0, today=date(2026, 1, 6), path=str(p))
+    # same-day re-record overwrites (last write wins)
+    log = record_daily({"vix": 0.3, "breadth": -0.2, "bad": float("nan")}, 5020.0, today=date(2026, 1, 6), path=str(p))
+    assert p.exists() and set(log) == {"2026-01-05", "2026-01-06"}
+    assert log["2026-01-06"]["scores"]["vix"] == 0.3  # overwritten
+    assert "bad" not in log["2026-01-06"]["scores"]  # NaN filtered out
+    assert log["2026-01-06"]["spot"] == 5020.0
+    assert load_log(str(p)) == log  # round-trips
+
+
+def test_load_log_missing_or_corrupt_is_empty(tmp_path):
+    from spotgamma.learning.featurelog import load_log
+
+    assert load_log(str(tmp_path / "nope.json")) == {}
+    bad = tmp_path / "bad.json"
+    bad.write_text("{ not valid")
+    assert load_log(str(bad)) == {}
+
+
+def test_record_daily_allows_missing_spot(tmp_path):
+    from spotgamma.learning.featurelog import record_daily
+
+    p = tmp_path / "feature_log.json"
+    log = record_daily({"vix": 0.0}, None, today=date(2026, 1, 5), path=str(p))
+    assert "spot" not in log["2026-01-05"]
+
+
+def test_log_to_dataset_forward_returns_and_no_lookahead():
+    from spotgamma.learning.featurelog import log_to_dataset
+
+    # 10 logged days, spot ramps 100,101,...; scores include a NO-HISTORY signal.
+    log = {
+        f"2026-02-{d:02d}": {"scores": {"breadth": (d % 3) - 1.0, "put_call": 0.1}, "spot": 100.0 + d}
+        for d in range(1, 11)
+    }
+    rows = log_to_dataset(log, horizons=(1, 5))
+    # row for day 1 (spot 101): fwd1 = 102/101-1, fwd5 = 106/101-1
+    first = rows[0]
+    assert first.fwd_returns[1] == pytest.approx(102.0 / 101.0 - 1.0)
+    assert first.fwd_returns[5] == pytest.approx(106.0 / 101.0 - 1.0)
+    # trailing rows whose 5d horizon hasn't matured still emit if 1d exists; the
+    # very last row has no future at all -> dropped
+    assert all(r.fwd_returns for r in rows)
+    assert rows[-1].date <= "2026-02-09"  # last day (02-10) has no forward bar
+
+
+def test_log_to_dataset_unlocks_no_history_signals():
+    # The whole point: a signal with NO free history (breadth) becomes backtestable
+    # once it's been logged. Build a log where breadth is perfectly contrarian.
+    from spotgamma.learning.backtest import signal_report
+    from spotgamma.learning.featurelog import log_to_dataset
+
+    log = {}
+    for d in range(1, 61):
+        b = ((d % 21) / 10.0) - 1.0  # sweep -1..1
+        # forward return anti-correlated with breadth score (contrarian)
+        log[f"2026-{(d // 28) + 1:02d}-{(d % 28) + 1:02d}"] = {
+            "scores": {"breadth": b},
+            "spot": 100.0 * (1.0 - 0.05 * b * (d / 60.0)),
+        }
+    days = sorted(log)
+    # rebuild with a clean forward relation: spot[i+1] depends on -breadth[i]
+    spots = [100.0]
+    for dd in days[:-1]:
+        spots.append(spots[-1] * (1.0 - 0.02 * log[dd]["scores"]["breadth"]))
+    for dd, s in zip(days, spots, strict=True):
+        log[dd]["spot"] = s
+    rows = log_to_dataset(log, horizons=(1,))
+    rep = signal_report(rows, "breadth", 1)
+    assert rep.n > 30 and rep.ic < 0  # contrarian breadth now measurable from the log
+
+
+def test_gamma_sign_score():
+    from spotgamma.learning.featurelog import gamma_sign_score
+
+    assert gamma_sign_score(-5e10, 5000, 5100) == 1.0  # net<0 -> risk-off vote
+    assert gamma_sign_score(5e10, 5200, 5100) == -1.0  # positive regime, spot above flip
+    assert gamma_sign_score(5e10, 5000, 5100) == 1.0  # spot below flip -> negative regime
+    assert gamma_sign_score(None, None, None) is None  # gamma unavailable

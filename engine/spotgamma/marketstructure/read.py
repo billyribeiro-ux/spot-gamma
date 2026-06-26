@@ -85,7 +85,7 @@ def build_market_structure(
     if spread is not None:
         sigs.append(S.yield_curve_signal(spread))
     if dxy is not None:
-        sigs.append(S.dollar_signal(dxy, None, None))
+        sigs.append(_dollar_signal(dxy))
 
     # Breadth (§7) — self-computed from constituent closes; a directional-health
     # signal that joins the RORO sum. Skipped (graceful) if the fetch fails.
@@ -168,6 +168,32 @@ def _learned_overlay(model: dict | None, sigs: list, roro_score: float) -> dict 
         "tilt_fwd_return": apply_tilt(model, scores),  # None unless tilt adopted
         "calibration": calibration_lookup(model, roro_score),
     }
+
+
+_DOLLAR_MA_WINDOW = 200
+_DOLLAR_ROC_WINDOW = 20
+
+
+def _dollar_signal(dxy: float):
+    """Dollar signal with its trend filter wired (200-DMA + 20-day rate-of-change).
+
+    The signal is direction/momentum-based (§3.2): without the 200-DMA and RoC it
+    is permanently neutral. We fetch DXY daily closes and compute both, point-in-
+    time (trailing only); if the history fetch fails we degrade to the bare level
+    (neutral), never crashing the read. Mirrors the backtest's dollar features so
+    the live read and the §7 calibration agree.
+    """
+    from .quotes import fetch_daily_closes
+
+    closes, _err = _safe(fetch_daily_closes, "DX-Y.NYB")
+    ma200 = roc_pct = None
+    if closes:
+        if len(closes) >= _DOLLAR_MA_WINDOW:
+            ma200 = sum(closes[-_DOLLAR_MA_WINDOW:]) / _DOLLAR_MA_WINDOW
+        if len(closes) > _DOLLAR_ROC_WINDOW:
+            past = closes[-(_DOLLAR_ROC_WINDOW + 1)]
+            roc_pct = (dxy / past - 1.0) * 100.0 if past else None
+    return S.dollar_signal(dxy, ma200, roc_pct)
 
 
 def _breadth_signal():

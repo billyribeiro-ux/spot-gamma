@@ -38,16 +38,20 @@ Run `pytest` from the repo root to include the API hub tests too.
 ### 1c. Self-learning layer — backtest & calibrated weights (free data)
 
 ```bash
-spotgamma backtest --horizon 20   # OOS information coefficient + calibration table
-spotgamma learn --horizon 20      # train, walk-forward validate, persist the model
+spotgamma backtest --horizon 20        # OOS information coefficient + calibration table
+spotgamma learn --horizon 20           # train, walk-forward validate, persist the model
+spotgamma record-features SPX          # append today's signals to the daily feature log (run from cron)
 ```
 
 `backtest` measures, out-of-sample, whether the market-structure signals carry
 forward-return information (they do — contrarian, IC ≈ +0.18 at 20d). `learn`
 fits calibrated regime weights and a ridge return-tilt, **adopts them only if they
 beat the documented prior out-of-sample**, and writes a gitignored
-`instance/learned_model.json` the live read attaches as a `learned` overlay. See
-[`docs/MARKET_STRUCTURE.md`](docs/MARKET_STRUCTURE.md) §7.1.
+`instance/learned_model.json` the live read attaches as a `learned` overlay.
+`record-features` (run daily, e.g. from cron) appends every live signal —
+including breadth / put-call / dealer-gamma sign, which have no free back-history —
+to a daily log so they too become backtestable as the history accrues. See
+[`docs/MARKET_STRUCTURE.md`](docs/MARKET_STRUCTURE.md) §7.1–7.2.
 
 ### 1b. Real data, free, no account
 

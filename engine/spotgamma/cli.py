@@ -165,6 +165,41 @@ def learn(
         typer.echo("  → nothing beat the documented prior OOS; the live read keeps the §5 weights.")
 
 
+@app.command("record-features")
+def record_features(
+    symbol: str = typer.Argument("SPX", help="Underlying to record the daily signal scores for."),
+    source: str = typer.Option("cboe", help="Chain source for dealer gamma (cboe is free)."),
+) -> None:
+    """Append today's live signal scores to the daily feature log.
+
+    Run this once per trading day (e.g. from cron) to accumulate a point-in-time
+    history of EVERY signal — including breadth / put-call / dealer-gamma sign,
+    which have no free back-history — so they can eventually be backtested
+    (``log_to_dataset``). Gamma degrades gracefully: if the chain feed is down the
+    macro/vol scores are still recorded, without the gamma vote.
+    """
+    from .learning.featurelog import gamma_sign_score, record_daily
+    from .marketstructure.read import build_market_structure
+
+    gx = spot = flip = None
+    try:
+        levels = _levels(symbol, source)
+        gx, spot, flip = levels.net_gex, levels.spot, levels.zero_gamma
+    except Exception as e:  # chain feed down -> record the macro/vol read anyway
+        typer.echo(f"  (gamma unavailable: {e}; recording macro/vol only)")
+
+    ms = build_market_structure(net_gex=gx, spot=spot, zero_gamma=flip)
+    scores = {s.key: s.score for s in ms.read.signals}
+    gsign = gamma_sign_score(gx, spot, flip)
+    if gsign is not None:
+        scores["gamma_sign"] = gsign
+
+    log = record_daily(scores, spot, today=None)
+    typer.echo(f"Recorded {symbol.upper()} for today — {len(scores)} signals, spot={spot}")
+    typer.echo(f"  signals: {', '.join(f'{k} {v:+.2f}' for k, v in scores.items())}")
+    typer.echo(f"  feature log now holds {len(log)} day(s); run `spotgamma learn` once it's deep enough.")
+
+
 def main() -> None:  # console-script entry point
     app()
 
